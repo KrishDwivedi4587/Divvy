@@ -5,22 +5,22 @@ this machine — nothing here is assumed. Re-verify before trusting it later.
 
 ## Machine
 
-| | |
-|---|---|
-| OS | Windows 11, version 10.0.26200.9168 |
-| Node | v24.13.0 |
-| npm | 11.6.2 |
-| Git | 2.52.0.windows.1 |
+|      |                                     |
+| ---- | ----------------------------------- |
+| OS   | Windows 11, version 10.0.26200.9168 |
+| Node | v24.13.0                            |
+| npm  | 11.6.2                              |
+| Git  | 2.52.0.windows.1                    |
 
 ## Project
 
-| | |
-|---|---|
-| Expo SDK | `~57.0.18` |
-| React Native | `0.86.3` |
-| React | `19.2.3` |
-| expo-router | `~57.0.17` |
-| TypeScript | `~6.0.3` (`strict: true`) |
+|              |                           |
+| ------------ | ------------------------- |
+| Expo SDK     | `~57.0.18`                |
+| React Native | `0.86.3`                  |
+| React        | `19.2.3`                  |
+| expo-router  | `~57.0.17`                |
+| TypeScript   | `~6.0.3` (`strict: true`) |
 
 Expo 57 API reference: https://docs.expo.dev/versions/v57.0.0/
 
@@ -29,10 +29,10 @@ Expo 57 API reference: https://docs.expo.dev/versions/v57.0.0/
 Two different JDKs are visible on this machine, and **the one on `PATH` is not
 the one Gradle uses**:
 
-| Source | Version |
-|---|---|
-| `java` on `PATH` | **25.0.2** — not supported by Android Gradle Plugin |
-| **`JAVA_HOME`** → `C:\Program Files\Android\Android Studio\jbr` | **21.0.10** ✅ |
+| Source                                                          | Version                                             |
+| --------------------------------------------------------------- | --------------------------------------------------- |
+| `java` on `PATH`                                                | **25.0.2** — not supported by Android Gradle Plugin |
+| **`JAVA_HOME`** → `C:\Program Files\Android\Android Studio\jbr` | **21.0.10** ✅                                      |
 
 **Gradle resolves its JDK from `JAVA_HOME`, not from `PATH`.** Since `JAVA_HOME`
 points at Android Studio's bundled JDK 21, local Android builds are expected to
@@ -55,12 +55,12 @@ record until D10 is revised with evidence from Spike 0.
 
 ## Android SDK
 
-| | |
-|---|---|
+|                |                                           |
+| -------------- | ----------------------------------------- |
 | `ANDROID_HOME` | `C:\Users\ASUS\AppData\Local\Android\Sdk` |
-| Platforms | `android-36.1` |
-| Build-tools | `36.1.0`, `37.0.0` |
-| adb | 1.0.41, on `PATH` |
+| Platforms      | `android-36.1`                            |
+| Build-tools    | `36.1.0`, `37.0.0`                        |
+| adb            | 1.0.41, on `PATH`                         |
 
 ## Physical device
 
@@ -79,7 +79,7 @@ signed off from an emulator:
 - Share sheet and WhatsApp delivery
 - Final APK verification
 
-An emulator may be used for interim *functional* development. It is never final
+An emulator may be used for interim _functional_ development. It is never final
 evidence for the items above.
 
 > The one local AVD (`Practical_Emulator`) is configured with

@@ -30,12 +30,12 @@ npx expo start
 
 ## Documentation
 
-| File | Contents |
-|---|---|
-| [`DIVVY_ROADMAP.md`](DIVVY_ROADMAP.md) | Plan, scope decisions, schedule |
+| File                                           | Contents                             |
+| ---------------------------------------------- | ------------------------------------ |
+| [`DIVVY_ROADMAP.md`](DIVVY_ROADMAP.md)         | Plan, scope decisions, schedule      |
 | [`docs/architecture.md`](docs/architecture.md) | Structure and separation of concerns |
-| [`docs/environment.md`](docs/environment.md) | Verified toolchain, JDK notes |
-| [`spikes/README.md`](spikes/README.md) | Spike rules and planned spikes |
+| [`docs/environment.md`](docs/environment.md)   | Verified toolchain, JDK notes        |
+| [`spikes/README.md`](spikes/README.md)         | Spike rules and planned spikes       |
 
 Built with [Expo](https://expo.dev) SDK 57 and
 [Expo Router](https://docs.expo.dev/router/introduction/).

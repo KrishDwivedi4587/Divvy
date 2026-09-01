@@ -25,10 +25,10 @@ environment, the result, the evidence, the decision, and any fallback adopted.
 
 ## Planned spikes
 
-| Spike | Question | Directory |
-|---|---|---|
+| Spike       | Question                                                                                                                  | Directory        |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------- | ---------------- |
 | **Spike 0** | Can a native module run in an Expo development build on a physical Android device? Does on-device OCR return usable text? | `spikes/native/` |
-| **Spike 1** | Can an item chip be dragged out of a scrolling list and reliably hit-tested against avatar drop targets? | `spikes/drag/` |
+| **Spike 1** | Can an item chip be dragged out of a scrolling list and reliably hit-tested against avatar drop targets?                  | `spikes/drag/`   |
 
 Neither spike is implemented yet. Both require validation on a **physical
 Android device** — an emulator is acceptable for interim functional development

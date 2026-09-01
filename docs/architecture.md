@@ -32,7 +32,7 @@ and utilities all belong in a sibling directory under `src/`, never in
 - `DIVVY_ROADMAP.md` remains **unchanged**.
 
 This is an implementation-level interpretation, not a correction of the roadmap.
-§6's architectural *intent* is that the route layer is thin and contains only
+§6's architectural _intent_ is that the route layer is thin and contains only
 routes; that intent is fully preserved. The roadmap's `app/` notation describes
 the **route layer conceptually**, and `src/app/` is where SDK 57 puts it.
 
@@ -54,17 +54,17 @@ not use it.
 
 ## Source structure
 
-| Directory | Responsibility | Introduced |
-|---|---|---|
-| `src/app/` | Expo Router routes only | exists |
-| `src/core/` | Pure business/calculation logic | Phase 1 |
-| `src/domain/` | Domain models and TypeScript types (roadmap §7) | Phase 1 |
-| `src/store/` | Application state (active bill) | Phase 3 |
-| `src/data/` | Persistence / data access (SQLite) | Phase 3 |
-| `src/ocr/` | OCR integration and receipt parsing | Phase 5 |
-| `src/gestures/` | Gesture / drag infrastructure | Phase 2 |
-| `src/features/` | Feature-specific UI | Phase 2–4 |
-| `src/ui/` | Reusable UI primitives and design system | Unit D onward |
+| Directory       | Responsibility                                  | Introduced    |
+| --------------- | ----------------------------------------------- | ------------- |
+| `src/app/`      | Expo Router routes only                         | exists        |
+| `src/core/`     | Pure business/calculation logic                 | Phase 1       |
+| `src/domain/`   | Domain models and TypeScript types (roadmap §7) | Phase 1       |
+| `src/store/`    | Application state (active bill)                 | Phase 3       |
+| `src/data/`     | Persistence / data access (SQLite)              | Phase 3       |
+| `src/ocr/`      | OCR integration and receipt parsing             | Phase 5       |
+| `src/gestures/` | Gesture / drag infrastructure                   | Phase 2       |
+| `src/features/` | Feature-specific UI                             | Phase 2–4     |
+| `src/ui/`       | Reusable UI primitives and design system        | Unit D onward |
 
 Path alias: **`@/*` → `./src/*`** (plus `@/assets/*` → `./assets/*`), declared in
 `tsconfig.json`. Expo CLI and Metro resolve `tsconfig.json` path aliases
