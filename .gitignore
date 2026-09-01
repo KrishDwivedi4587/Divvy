@@ -1,0 +1,61 @@
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+example
+
+# generated native folders
+/ios
+/android
+
+# ── Divvy additions (Unit B) ──────────────────────────────
+# Roadmap §14 requires .env and *.keystore; the template covered
+# neither a bare `.env` (only `.env*.local`) nor `*.keystore`.
+
+# Environment files (keep a committed .env.example if we ever add one)
+.env
+.env.*
+!.env.example
+
+# Android signing + build outputs (local EAS/Gradle artifacts)
+*.keystore
+*.apk
+*.aab
+
+# Windows OS files
+Thumbs.db
+ehthumbs.db
