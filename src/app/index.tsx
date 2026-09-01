@@ -1,9 +1,10 @@
 import { StyleSheet, Text, View } from 'react-native';
 
+import { colors, layout, spacing, typography } from '@/ui/theme/tokens';
+
 /**
- * Phase 0 / Unit A placeholder.
- * Proves the project boots. Styles are intentionally inline and temporary —
- * Unit D introduces src/ui/theme/tokens.ts and this screen is re-pointed at it.
+ * Phase 0 placeholder. Exists to prove the app boots and that the token layer
+ * resolves through the `@/` alias. Replaced by the real Home screen in Phase 3.
  */
 export default function Index() {
   return (
@@ -19,17 +20,16 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0B1220',
+    paddingHorizontal: layout.screenPadding,
+    backgroundColor: colors.surface.background,
   },
   title: {
-    fontSize: 40,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: -0.5,
+    ...typography.h1,
+    color: colors.text.primary,
   },
   tagline: {
-    marginTop: 8,
-    fontSize: 16,
-    color: '#8A94A6',
+    ...typography.body,
+    marginTop: spacing.sm,
+    color: colors.text.secondary,
   },
 });
