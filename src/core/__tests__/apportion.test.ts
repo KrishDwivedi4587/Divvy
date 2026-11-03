@@ -158,7 +158,18 @@ describe('apportionSigned — the D7 negative-amount trap', () => {
       }));
       const amount = p(Math.floor(Math.random() * 200000));
       const shares = apportionSigned(amount, entries, true);
-      expect(total(shares)).toBe(-amount);
+      // `0 - amount`, not `-amount`: when the random amount is 0, `-amount` is
+      // negative zero, which `toBe` (Object.is) treats as different from the
+      // +0 that `total` produces. That made this test fail in roughly 2.5% of
+      // runs. The arithmetic being asserted is unchanged.
+      expect(total(shares)).toBe(0 - amount);
     }
+  });
+
+  it('regression: a zero-amount discount sums to zero (deterministic)', () => {
+    // The fuzz test above only reached amount = 0 by chance; pin it.
+    const shares = apportionSigned(p(0), w(1, 2, 3), true);
+    expect(total(shares)).toBe(0);
+    expect(shares.every((s) => s.share <= 0)).toBe(true);
   });
 });
