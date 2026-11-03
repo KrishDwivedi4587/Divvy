@@ -305,3 +305,21 @@ export type Radius = keyof typeof radii;
 export type TypographyVariant = keyof typeof typography;
 export type SpringName = keyof typeof spring;
 export type StatusColor = keyof typeof colors.status;
+
+/* ------------------------------------------------------------------ *
+ * Tints                                                               *
+ * ------------------------------------------------------------------ */
+
+/**
+ * Translucent fills for notices and selected states: the status or accent
+ * colour at low alpha (8-digit hex), so a tint always stays in step with its
+ * parent colour. Meaning is never carried by the tint alone — notices also have
+ * an icon and text (see docs/design-tokens.md, Accessibility).
+ */
+export const tint = {
+  action: `${colors.action.primary}33`,
+  success: `${colors.status.success}1F`,
+  warning: `${colors.status.warning}1F`,
+  error: `${colors.status.error}1F`,
+  info: `${colors.status.info}1F`,
+} as const;
