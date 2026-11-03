@@ -54,17 +54,27 @@ not use it.
 
 ## Source structure
 
-| Directory       | Responsibility                                  | Introduced    |
-| --------------- | ----------------------------------------------- | ------------- |
-| `src/app/`      | Expo Router routes only                         | exists        |
-| `src/core/`     | Pure business/calculation logic                 | Phase 1       |
-| `src/domain/`   | Domain models and TypeScript types (roadmap §7) | Phase 1       |
-| `src/store/`    | Application state (active bill)                 | Phase 3       |
-| `src/data/`     | Persistence / data access (SQLite)              | Phase 3       |
-| `src/ocr/`      | OCR integration and receipt parsing             | Phase 5       |
-| `src/gestures/` | Gesture / drag infrastructure                   | Phase 2       |
-| `src/features/` | Feature-specific UI                             | Phase 2–4     |
-| `src/ui/`       | Reusable UI primitives and design system        | Unit D onward |
+| Directory       | Responsibility                                                  | Status                      |
+| --------------- | --------------------------------------------------------------- | --------------------------- |
+| `src/app/`      | Expo Router routes only                                         | exists                      |
+| `src/core/`     | Pure business/calculation logic. **No framework imports**       | exists (Phase 1)            |
+| `src/domain/`   | Domain models and TypeScript types                              | exists                      |
+| `src/store/`    | The bill being built: a pure reducer plus a thin React provider | exists (check-in)           |
+| `src/platform/` | Native integrations (camera, gallery), isolated from `core`     | exists (check-in)           |
+| `src/features/` | Feature-specific UI and hooks (`photo`, `bill`, `navigation`)   | exists (check-in)           |
+| `src/ui/`       | Reusable UI primitives and the design tokens                    | exists                      |
+| `src/data/`     | Persistence / data access (SQLite)                              | not yet (later phase)       |
+| `src/ocr/`      | OCR integration and receipt parsing                             | not yet (needs a dev build) |
+| `src/gestures/` | Gesture / drag infrastructure                                   | not yet (needs a device)    |
+
+`src/platform/` was added for the check-in. The roadmap's tree had no home for
+native integrations other than OCR; camera and gallery access import a native
+module, so they cannot live in `src/core/`, which must run in plain Node.
+
+**State management.** The original plan listed Zustand for `src/store/`. The
+check-in uses a plain `useReducer` + Context instead: the app is one small tree of
+screens, and the logic sits in a pure, unit-tested reducer (`billReducer`). No
+state library was added. Zustand remains an option if the state grows.
 
 Path alias: **`@/*` → `./src/*`** (plus `@/assets/*` → `./assets/*`), declared in
 `tsconfig.json`. Expo CLI and Metro resolve `tsconfig.json` path aliases
@@ -111,6 +121,15 @@ recognition output, with no camera and no native module involved.
 The test runner is configured in a later unit; this section fixes the
 convention, not the tooling.
 
+**Update (check-in).** Tests now also live beside `src/store`, `src/platform` and
+`src/features/bill`. `src/platform/__tests__/photo.test.ts` replaces the native
+`expo-image-picker` module with a mock, so it tests the decision logic around the camera (permission
+granted, declined, permanently blocked, cancelled, error) without a camera. It
+does **not** prove the iPhone camera works; only a device can.
+
+React components are not unit-tested: Jest runs in the plain `node` environment
+(roadmap line 1311). They are verified by running the app.
+
 ---
 
 ## Spikes
@@ -129,6 +148,66 @@ fresh in `src/`, informed by the finding.
 
 ## Platform scope
 
-Android-only. The development machine is Windows, so no iOS build is possible
-and iOS is out of scope as a deliberate boundary rather than an oversight.
-iOS-specific template configuration and assets were removed in Unit C.
+**iOS is the primary demonstration platform, with Android and web kept working.**
+
+This reverses the earlier decision. Unit C recorded the project as Android-only
+(a Galaxy Note 9 was the demo device) and removed the `ios` block from
+`app.json`. The demo device is now an iPhone 17, so the block is back, with
+`bundleIdentifier` and the camera / photo permission strings.
+
+The development machine is still Windows, which cannot build iOS locally. The
+project therefore runs in **Expo Go**, loading over the network, and every
+dependency the app imports is bundled in Expo Go. See
+[`checkin-plan.md`](checkin-plan.md) for the reasoning and sources, and
+[`ios-demo.md`](ios-demo.md) for how to run it.
+
+Consequences kept visible:
+
+- **ML Kit is not imported by anything under `src/`.** It is a native module Expo
+  Go cannot load. The Android spike evidence remains in `spikes/`.
+- **Web is a fallback, not a target.** `react-native-web` was already installed;
+  the whole flow runs in a browser, which is also the safety net if Expo Go and
+  the SDK ever disagree.
+- `web.output` is `"single"` (client-only). The template default `"static"` renders
+  pages on the server, which this in-memory app does not need.
+
+---
+
+## Navigation
+
+A linear flow with no tab bar (roadmap §11: it is a workflow, not parallel
+sections). Routes live in `src/app/`:
+
+```
+/            Home            New bill · Upload a bill photo · recent bills
+/capture     Capture         Take photo · Upload from gallery · enter manually
+/preview     Preview         Retake / Choose another · Remove · Use this photo
+/details     Bill details    name · amount · tax · tip · extra charges
+/people      People          add and remove participants
+/summary     Summary         totals · per person · breakdown · share · save
+```
+
+Both capture paths and the Home shortcut end at `/preview`. "Enter details
+manually" skips the photo and goes straight to `/details`: the photo is a
+convenience, never a requirement (roadmap §1 D1).
+
+Every screen that depends on earlier input handles arriving without it (a reload,
+or a deep link on web) with an explanatory empty state rather than a blank page or
+zeros.
+
+## Data flow
+
+```
+ form text ──▶ billReducer ──▶ BillState
+                                  │
+                       buildBill(draft, people)        src/core, pure
+                                  │
+                              Bill (engine type)
+                                  │
+                       computeSettlement(bill)         src/core, pure, M1
+                                  │
+                       Settlement ──▶ screens display it
+```
+
+Inputs are stored; the settlement is derived on every change and never stored
+(roadmap D9). No screen does any money arithmetic of its own.

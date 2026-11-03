@@ -89,3 +89,31 @@ evidence for the items above.
 ## Not yet installed
 
 `eas-cli` is not installed. Not needed while local builds are the primary path.
+
+---
+
+## iOS and Expo Go (added 3 November 2026)
+
+The demo device changed from an Android phone to an **iPhone 17**. The
+development machine is still Windows. Verified on this laptop:
+
+|                                      |                                                                                                                           |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| Expo SDK                             | ~57 (packages aligned to the current 57.x patch levels)                                                                   |
+| `expo-doctor`                        | 20/21; the one warning is `@react-native-ml-kit/text-recognition` "untested on New Architecture", left visible on purpose |
+| `npx expo export --platform ios`     | exit 0 (1,165 modules, 2.5 MB Hermes bytecode)                                                                            |
+| Dev server on the LAN address        | HTTP 200 (`192.168.29.181:8081` at the time)                                                                              |
+| Tunnel mode (`npm run start:tunnel`) | starts, reports "Tunnel ready"                                                                                            |
+| Network category                     | **Public** (Windows), with inbound **Allow** rules for Node.js on the Public profile                                      |
+| `npx expo whoami`                    | **Not logged in**; an Expo login is required before an iPhone can open the project                                        |
+
+**What Windows cannot do:** build a native iOS app. Xcode is macOS-only, and EAS
+cloud builds for iOS need a paid Apple Developer Program membership. Everything is
+therefore designed for **Expo Go**, which loads the JavaScript over the network.
+
+**Not verifiable from here:** which Expo SDK the App Store's Expo Go currently
+supports. Expo's changelog (3 Sep 2026) says SDK 57; SDK 58 shipped on 15 Oct. See
+[`ios-demo.md`](ios-demo.md) for the check and fallbacks.
+
+The Android toolchain notes above are unchanged and still accurate; they apply to
+the spike work in `spikes/`.

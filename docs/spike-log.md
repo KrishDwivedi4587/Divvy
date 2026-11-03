@@ -256,3 +256,26 @@ hardware.
 
 **Nothing is blocked on engineering time.** The Phase 1 calculation engine is
 complete and proven precisely because it was designed to need none of the above.
+
+---
+
+## Addendum — 3 November 2026: platform change
+
+Nothing above has been edited; this records how the change of demo device affects
+the spikes.
+
+The demo device is now an **iPhone 17**, developed from Windows and run in **Expo
+Go**. See [`checkin-plan.md`](checkin-plan.md).
+
+| Spike                     | Effect                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **0** — ML Kit            | The Android **build evidence stands** (APK built, natives packaged). The open runtime question is now **moot for the check-in**: ML Kit is a native module Expo Go cannot load, and an iOS development build needs a Mac or a paid EAS account. Status for the check-in: **not applicable**, not failed. Expo's own checker also independently reports the package as "untested on New Architecture", consistent with the interop concern recorded above. |
+| **1** — drag              | Still a physical-device measurement. Not run. The check-in does not use drag.                                                                                                                                                                                                                                                                                                                                                                             |
+| **2** — OCR quality       | Needs real receipts **and** ML Kit running on a device. Deferred with OCR.                                                                                                                                                                                                                                                                                                                                                                                |
+| **3** — centre-hold split | Still blocked behind Spike 1.                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| **4** — share image       | Not built. A plain-text share through the system share sheet **is** built (this is roadmap §10 layer C); the image card is not.                                                                                                                                                                                                                                                                                                                           |
+
+The roadmap's **Fallback B** ("camera as reference, not extraction") is exactly
+what the check-in implements: the bill photo is shown beside manual entry, and
+nothing is ever extracted or pretended to be. That was a planned fallback, so
+taking it is the plan working rather than a retreat from it.
