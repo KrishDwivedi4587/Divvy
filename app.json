@@ -18,7 +18,7 @@
       "package": "com.anonymous.divvy"
     },
     "web": {
-      "output": "static",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -30,11 +30,25 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
+      ],
+      "expo-image",
+      "expo-web-browser",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Divvy uses your photos so you can choose a bill to split.",
+          "cameraPermission": "Divvy uses your camera to photograph a bill.",
+          "microphonePermission": false
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "ios": {
+      "bundleIdentifier": "com.anonymous.divvy",
+      "supportsTablet": false
     }
   }
 }
