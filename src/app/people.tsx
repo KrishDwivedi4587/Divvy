@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Pressable, StyleSheet, View, type TextInput } from 'react-native';
+import { Pressable, StyleSheet, View, type TextInputInstance } from 'react-native';
 
 import {
   checkPersonName,
@@ -39,7 +39,7 @@ export default function People() {
 
   const [name, setName] = useState('');
   const [error, setError] = useState<string | undefined>();
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
 
   const add = () => {
     const check = checkPersonName(

@@ -70,7 +70,7 @@ changed during 2026.
 
 | Decision                                                     | Why                                                                                                                                                                 |
 | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Run in Expo Go on SDK 57                                     | The only iOS route available from Windows without a paid account                                                                                                    |
+| Run in Expo Go on SDK 58 (was 57; see section 11)            | The only iOS route available from Windows without a paid account                                                                                                    |
 | `expo-image-picker` for **both** camera and gallery          | One package, one result type, one workflow. The camera opens the system camera, which behaves identically in Expo Go and a production build                         |
 | Gallery needs no permission                                  | iOS's picker runs out of process (PHPicker); the app only ever receives the single photo chosen                                                                     |
 | **OCR deferred**; manual entry with the photo kept on screen | ML Kit cannot run in Expo Go. This is the roadmap's own pre-approved Fallback B ("camera as reference, not extraction"), so it is a planned fallback, not a retreat |
@@ -173,3 +173,20 @@ the `+0` the sum produces. It is a test bug, not an engine bug; the engine is
 unchanged. The assertion was corrected without reducing coverage and the zero
 case is now pinned by a deterministic test. See the commit message for the full
 reasoning.
+
+---
+
+## 11. Update: upgraded to Expo SDK 58
+
+On first launch the iPhone's Expo Go (SDK 58.0.0) rejected the project with
+"Project is incompatible with this version of Expo Go". This is the unverified
+risk recorded in section 3: the App Store build had moved to SDK 58 and dropped 57.
+Divvy was upgraded to **SDK 58** (React Native 0.88.1, React 19.3.0, expo-router
+58.0.29). Section 3's statements about SDK 57 are kept as the record of what was
+known on 3 November; they no longer describe the project.
+
+Result: 274 tests pass, `tsc` is clean, iOS, Android and web exports succeed, the
+dev server serves an SDK 58 manifest and a full iOS bundle. Whether the project
+now opens in the iPhone's Expo Go is **not yet confirmed on the device**. Versions
+and the one code change are in [`environment.md`](environment.md) and
+[`architecture.md`](architecture.md).

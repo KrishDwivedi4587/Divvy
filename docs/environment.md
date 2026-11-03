@@ -16,13 +16,13 @@ this machine — nothing here is assumed. Re-verify before trusting it later.
 
 |              |                           |
 | ------------ | ------------------------- |
-| Expo SDK     | `~57.0.18`                |
-| React Native | `0.86.3`                  |
-| React        | `19.2.3`                  |
-| expo-router  | `~57.0.17`                |
+| Expo SDK     | `~58.0.22`                |
+| React Native | `0.88.1`                  |
+| React        | `19.3.0`                  |
+| expo-router  | `~58.0.29`                |
 | TypeScript   | `~6.0.3` (`strict: true`) |
 
-Expo 57 API reference: https://docs.expo.dev/versions/v57.0.0/
+Expo 58 API reference: https://docs.expo.dev/versions/v58.0.0/
 
 ## ⚠️ JDK — read this before any Android build
 
@@ -99,11 +99,11 @@ development machine is still Windows. Verified on this laptop:
 
 |                                      |                                                                                                                           |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| Expo SDK                             | ~57 (packages aligned to the current 57.x patch levels)                                                                   |
-| `expo-doctor`                        | 20/21; the one warning is `@react-native-ml-kit/text-recognition` "untested on New Architecture", left visible on purpose |
-| `npx expo export --platform ios`     | exit 0 (1,165 modules, 2.5 MB Hermes bytecode)                                                                            |
+| Expo SDK                             | 58 (`~58.0.22`; `npx expo install --check` reports "Dependencies are up to date")                                         |
+| `expo-doctor`                        | 19/20; the one warning is `@react-native-ml-kit/text-recognition` "untested on New Architecture", left visible on purpose |
+| `npx expo export --platform ios`     | exit 0 (2.7 MB Hermes bytecode); Android also exit 0 (3 MB)                                                               |
 | Dev server on the LAN address        | HTTP 200 (`192.168.29.181:8081` at the time)                                                                              |
-| Tunnel mode (`npm run start:tunnel`) | starts, reports "Tunnel ready"                                                                                            |
+| Tunnel mode (`npm run start:tunnel`) | starts and prints a tunnel URL (SDK 58 CLI no longer prints "Tunnel ready")                                               |
 | Network category                     | **Public** (Windows), with inbound **Allow** rules for Node.js on the Public profile                                      |
 | `npx expo whoami`                    | **Not logged in**; an Expo login is required before an iPhone can open the project                                        |
 
@@ -111,9 +111,39 @@ development machine is still Windows. Verified on this laptop:
 cloud builds for iOS need a paid Apple Developer Program membership. Everything is
 therefore designed for **Expo Go**, which loads the JavaScript over the network.
 
-**Not verifiable from here:** which Expo SDK the App Store's Expo Go currently
-supports. Expo's changelog (3 Sep 2026) says SDK 57; SDK 58 shipped on 15 Oct. See
-[`ios-demo.md`](ios-demo.md) for the check and fallbacks.
+**Resolved by the SDK 58 upgrade:** the iPhone's Expo Go reported SDK 58 and rejected
+the SDK 57 project, so Divvy moved to SDK 58. See below.
 
 The Android toolchain notes above are unchanged and still accurate; they apply to
 the spike work in `spikes/`.
+
+### SDK 58 upgrade (3 November 2026)
+
+Node 24.13.0 meets SDK 58's requirement (22.13+, 24.3+, or 26+). The upgrade used
+`npx expo install expo@^58.0.0` then `npx expo install --fix`.
+
+| Package                        | SDK 57  | SDK 58  |
+| ------------------------------ | ------- | ------- |
+| expo                           | 57.0.31 | 58.0.22 |
+| react-native                   | 0.86.3  | 0.88.1  |
+| react / react-dom              | 19.2.3  | 19.3.0  |
+| expo-router                    | 57.0.29 | 58.0.29 |
+| expo-image-picker              | 57.0.20 | 58.0.10 |
+| expo-symbols                   | 57.0.3  | 58.0.4  |
+| react-native-reanimated        | 4.5.1   | 4.7.1   |
+| react-native-worklets          | 0.10.1  | 0.13.0  |
+| react-native-gesture-handler   | 2.32.0  | 3.3.0   |
+| react-native-screens           | 4.26.x  | 4.30.1  |
+| react-native-safe-area-context | 5.7.0   | 5.10.1  |
+| @types/react                   | 19.2.x  | 19.3.0  |
+
+npm refused the first in-place install (an `ERESOLVE` on `expo-symbols`, an
+optional peer of `expo-router` 58, caused by the SDK 57 lockfile holding old
+ranges). It was resolved without `--force` or `--legacy-peer-deps` by deleting
+`node_modules` and `package-lock.json` and running `npm install` against the
+SDK 58 `package.json`. Transitive dependencies in the lockfile were therefore
+re-resolved; all 274 tests still pass.
+
+The generated, git-ignored `android/` folder from Spike 0 is still the SDK 57
+prebuild. Expo Go does not use it; delete and regenerate it before any native
+Android build.

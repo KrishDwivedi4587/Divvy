@@ -27,21 +27,21 @@ and utilities all belong in a sibling directory under `src/`, never in
 ### Intentional deviation from roadmap §6
 
 - Roadmap §6 depicts `app/` at the **repository root**.
-- Expo SDK 57 officially supports — and the default template uses — **`src/app/`**.
+- Expo SDK 58 officially supports — and the default template uses — **`src/app/`**.
 - **Divvy uses `src/app/`.**
 - `DIVVY_ROADMAP.md` remains **unchanged**.
 
 This is an implementation-level interpretation, not a correction of the roadmap.
 §6's architectural _intent_ is that the route layer is thin and contains only
 routes; that intent is fully preserved. The roadmap's `app/` notation describes
-the **route layer conceptually**, and `src/app/` is where SDK 57 puts it.
+the **route layer conceptually**, and `src/app/` is where SDK 58 puts it.
 
 Reasons for the decision:
 
 1. Officially supported on SDK 55+ with **no extra configuration**.
 2. `src/app/` **takes precedence** over a root `app/` if both exist — keeping
    only one avoids a silent-precedence bug class.
-3. Expo's own SDK 57 documentation uses `src/app/` as the canonical path, so
+3. Expo's own SDK 58 documentation uses `src/app/` as the canonical path, so
    documentation examples map directly onto this repository.
 4. Moving to root `app/` would be a self-inflicted migration with no benefit.
 5. Requires no Metro or Babel customisation.
@@ -211,3 +211,12 @@ zeros.
 
 Inputs are stored; the settlement is derived on every change and never stored
 (roadmap D9). No screen does any money arithmetic of its own.
+
+## SDK 58 notes
+
+Divvy runs on Expo SDK 58 (React Native 0.88). The one code change the upgrade
+needed: React Native's Strict TypeScript API types a ref to a `TextInput` as
+`TextInputInstance`, not `TextInput`. The four files that hold input refs
+(`ui/TextField.tsx`, `features/bill/ValueField.tsx`, `app/details.tsx`,
+`app/people.tsx`) were updated. `web.output` is explicitly `"single"` in
+`app.json`, so SDK 58's new server-rendered default does not apply.

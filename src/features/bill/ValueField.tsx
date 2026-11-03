@@ -1,4 +1,4 @@
-import type { TextInput } from 'react-native';
+import type { TextInputInstance } from 'react-native';
 import type { Ref } from 'react';
 
 import type { ValueInput, ValueMode } from '@/core/buildBill';
@@ -16,7 +16,7 @@ export interface ValueFieldProps {
   onChange: (patch: Partial<ValueInput>) => void;
   error?: string;
   helper?: string;
-  inputRef?: Ref<TextInput>;
+  inputRef?: Ref<TextInputInstance>;
 }
 
 /**

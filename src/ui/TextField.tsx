@@ -1,5 +1,11 @@
 import { useState, type ReactNode, type Ref } from 'react';
-import { StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
+import {
+  StyleSheet,
+  TextInput,
+  View,
+  type TextInputInstance,
+  type TextInputProps,
+} from 'react-native';
 
 import { Icon } from '@/ui/Icon';
 import { Text } from '@/ui/Text';
@@ -20,7 +26,7 @@ export interface TextFieldProps extends Omit<
   prefix?: string;
   /** Trailing content inside the field, e.g. a unit toggle. */
   accessory?: ReactNode;
-  inputRef?: Ref<TextInput>;
+  inputRef?: Ref<TextInputInstance>;
 }
 
 export function TextField({

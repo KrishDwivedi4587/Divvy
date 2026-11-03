@@ -4,7 +4,8 @@ Divvy runs on an iPhone through **Expo Go**, loading from your Windows laptop ov
 the network. No Mac, no Xcode and no Apple Developer account is needed.
 
 > **Status:** everything here has been prepared and checked from the laptop side.
-> It has **not yet been run on an iPhone**. The steps marked ✅ below are things
+> The project was upgraded to SDK 58 after the iPhone's Expo Go rejected SDK 57.
+> It has **not yet been confirmed to open on the iPhone**. The steps marked ✅ below are things
 > that were verified on the laptop; the rest is what you will confirm on the phone.
 
 ---
@@ -21,15 +22,13 @@ in, on **both** the laptop and the phone, **with the same account**
 
 App Store → search **Expo Go** → install.
 
-### 3. Check that it supports SDK 57 ⚠️
+### 3. Make sure Expo Go and the project are on the same SDK
 
-This is the one thing that could not be checked from the laptop. Divvy is built on
-**Expo SDK 57**. Expo's changelog says the App Store version was updated to
-support 57 in September, but SDK 58 was released on 15 October, so the store may
-have moved on.
-
-You will find out in step 6 when you scan the code. If Expo Go says the project is
-**incompatible** or "requires a newer/older version", go to
+Divvy is on **Expo SDK 58**. The Expo Go app from the App Store reported SDK 58.0.0
+when this was first tried, which is why the project was upgraded from SDK 57.
+Expo Go only opens projects built for its own SDK, and an iPhone's Expo Go cannot
+be downgraded, so the project has to follow it. If Expo Go is ever updated to a
+newer SDK than 58, see
 [If Expo Go and the project don't match](#if-expo-go-and-the-project-dont-match).
 
 ### 4. Sign in on the laptop
@@ -56,10 +55,11 @@ with the same Expo username and password.
 ```bash
 cd C:\Users\ASUS\Documents\College\divvy
 npm install        # only if you haven't run it, or after pulling changes
-npx expo start
+npx expo start --clear
 ```
 
-A QR code appears in the terminal.
+A QR code appears in the terminal. `--clear` empties Metro's cache, which you want
+after the SDK 58 upgrade; the first bundle then takes a minute.
 
 ✅ Verified on this laptop: the server starts, reports "Using src/app as the root
 directory for Expo Router", and answers HTTP 200 on the laptop's LAN address.
@@ -95,7 +95,7 @@ npm run start:tunnel
 
 Routes the connection through Expo's servers, so it works across network
 isolation. Slower to start and a little slower to reload. ✅ Verified: tunnel mode
-starts and reports "Tunnel ready" from this laptop (`@expo/ngrok` is installed as a
+starts and prints a tunnel URL from this laptop (SDK 58) (`@expo/ngrok` is installed as a
 dev dependency so it doesn't stop to prompt).
 
 ### The hotspot trick
@@ -114,20 +114,19 @@ LAN mode here. A different machine or network may differ.
 
 ## If Expo Go and the project don't match
 
-Expo Go on the App Store supports a fixed set of SDKs. Divvy is on **SDK 57**.
+Expo Go supports one SDK at a time and the iPhone's copy cannot be downgraded.
+Divvy is on **SDK 58**.
 
-**Expo Go says it needs SDK 58 (store moved on):**
+**"Project is incompatible with this version of Expo Go":** read the SDK number
+Expo Go shows.
 
-```bash
-npx expo install expo@^58.0.0 --fix
-npm run check
-```
-
-Then re-test the whole flow. **This upgrade has not been done or tested**; treat it
-as a fresh change, not a formality.
-
-**Expo Go supports only an older SDK:** the project cannot run in that version
-of Expo Go. Use the browser fallback below.
+- **It says SDK 58 and the project is on 58:** you are probably still talking to an
+  old Metro server or cached manifest. Stop every old server (Ctrl+C), close the
+  project in Expo Go, run `npx expo start --clear` and scan the _new_ QR code.
+- **Expo Go has moved to a newer SDK** (59 or later): upgrade the project one SDK
+  at a time with `npx expo install expo@^<next> ` then `npx expo install --fix`,
+  following [Expo's upgrade walkthrough](https://docs.expo.dev/workflow/upgrading-expo-sdk-walkthrough/),
+  and re-run `npm run check`. This has not been done or tested beyond 58.
 
 ### Plan B: run it in iPhone Safari
 

@@ -3,7 +3,7 @@
 Split a restaurant bill fairly. Photograph a receipt, add the people, and see
 exactly what each person owes, to the paisa.
 
-Mobile App Development mini project. React Native, Expo SDK 57, TypeScript. It
+Mobile App Development mini project. React Native, Expo SDK 58, TypeScript. It
 runs on an **iPhone through Expo Go**, developed from Windows, and works entirely
 on the device: no backend, no accounts, nothing uploaded.
 
@@ -39,7 +39,7 @@ App Store, and the iPhone on the same Wi-Fi as the laptop.
 ```bash
 npm install
 npx expo login        # sign in; also sign in inside Expo Go
-npx expo start
+npx expo start --clear
 ```
 
 Scan the QR code with the iPhone's Camera app. Full instructions, troubleshooting

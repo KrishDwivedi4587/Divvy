@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
-import { Pressable, StyleSheet, View, type TextInput } from 'react-native';
+import { Pressable, StyleSheet, View, type TextInputInstance } from 'react-native';
 
 import { formatPaise } from '@/core/money';
 import { useGoBack } from '@/features/navigation/useGoBack';
@@ -28,7 +28,7 @@ export default function Details() {
   const { state, dispatch } = useBill();
   const outcome = useBillResult(PREVIEW_NOW);
   const [showErrors, setShowErrors] = useState(false);
-  const amountRef = useRef<TextInput>(null);
+  const amountRef = useRef<TextInputInstance>(null);
 
   // Errors stay hidden until the first attempt to continue, so the form does
   // not scold the user for fields they have not reached yet. After that they
