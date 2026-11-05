@@ -40,6 +40,9 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+  assets:
+    - assets/fonts/Inter-LICENSE.txt
+
   fonts:
     - family: Inter
       fonts:

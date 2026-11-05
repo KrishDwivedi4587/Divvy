@@ -1,6 +1,8 @@
 import 'package:divvy/core/utils/currency.dart';
 import 'package:divvy/features/bills/domain/bill_draft.dart';
 import 'package:divvy/features/bills/domain/engine/money.dart';
+import 'package:divvy/features/bills/domain/engine/settle.dart';
+import 'package:divvy/features/bills/domain/models/settlement.dart';
 import 'package:divvy/features/bills/domain/models/bill.dart';
 import 'package:divvy/features/bills/domain/models/bill_record.dart';
 
@@ -24,9 +26,10 @@ DraftAdjustment charge(
   int amount, {
   AdjustmentMode mode = AdjustmentMode.amount,
   bool isNegative = false,
+  String? label,
 }) => DraftAdjustment(
   id: id,
-  label: id,
+  label: label ?? id,
   kind: kind,
   mode: mode,
   value: amount,
@@ -51,8 +54,13 @@ BillDraft goldenDraft({String suffix = ''}) {
       draftItem(id('naan'), 'Butter Naan', 16000, quantity: 4),
     ],
     adjustments: [
-      charge(id('gst'), AdjustmentKind.tax, 4883),
-      charge(id('service'), AdjustmentKind.service, 4650),
+      charge(id('gst'), AdjustmentKind.tax, 4883, label: 'GST'),
+      charge(
+        id('service'),
+        AdjustmentKind.service,
+        4650,
+        label: 'Service charge',
+      ),
     ],
     participants: [
       participant(id('aarav'), 'Aarav'),
@@ -73,3 +81,7 @@ BillDraft goldenDraft({String suffix = ''}) {
 /// A saved record for repository tests.
 BillRecord recordFrom(BillDraft draft, {String id = 'bill-1'}) =>
     draft.toRecord(id: id, now: now, receiptPath: null);
+
+/// The settlement of a saved record, for tests that format it.
+Settlement computeFor(BillRecord record) =>
+    computeSettlement(record.toEngineBill());

@@ -40,4 +40,8 @@ abstract interface class BillRepository {
   Future<List<PersonBalance>> balances();
 
   Future<int> count();
+
+  /// The most recent things that happened, newest first: bills saved and
+  /// people paying back.
+  Future<List<ActivityEvent>> recentActivity({int limit = 8});
 }

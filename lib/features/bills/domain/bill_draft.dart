@@ -96,6 +96,22 @@ class DraftParticipant {
   String get initials => initialsFor(name);
 }
 
+/// The bill's totals before anyone is assigned anything: the items, each
+/// charge worked out, and the grand total.
+class ReviewTotals {
+  const ReviewTotals({
+    required this.items,
+    required this.charges,
+    required this.grand,
+  });
+
+  final Paise items;
+
+  /// Each adjustment's amount, signed (negative for discounts), by id.
+  final Map<String, Paise> charges;
+  final Paise grand;
+}
+
 /// Everything that can stop a bill being saved.
 enum BillProblem {
   noItems,
@@ -335,6 +351,38 @@ class BillDraft {
       }
     }
     return found;
+  }
+
+  /// Items, charges and the grand total as the engine works them out, without
+  /// needing anyone to be assigned. Used by the review step, which comes
+  /// before people are added.
+  ReviewTotals reviewTotals() {
+    const everyone = Person(
+      id: '_all',
+      name: 'All',
+      colorIndex: 0,
+      initials: 'A',
+    );
+    final settlement = computeSettlement(
+      Bill(
+        id: 'review',
+        title: title,
+        createdAt: DateTime.utc(2000),
+        people: const [everyone],
+        items: [for (final i in items) i.toBillItem()],
+        assignments: {
+          for (final i in items) i.id: const ['_all'],
+        },
+        adjustments: _engineAdjustments(),
+      ),
+    );
+    return ReviewTotals(
+      items: settlement.itemsSubtotal,
+      charges: {
+        for (final a in settlement.adjustmentTotals) a.adjustmentId: a.amount,
+      },
+      grand: settlement.grandTotal,
+    );
   }
 
   /// The grand total, items plus every charge, or null if it cannot be worked

@@ -414,4 +414,34 @@ class SqliteBillRepository implements BillRepository {
         }),
     ];
   }
+
+  @override
+  Future<List<ActivityEvent>> recentActivity({int limit = 8}) async {
+    final rows = await _db.rawQuery(
+      "SELECT 'bill' AS kind, b.id AS bill_id, b.title AS title, "
+      'b.currency AS currency, NULL AS person_name, '
+      'b.grand_total AS amount, b.created_at AS at FROM bills b '
+      'UNION ALL '
+      "SELECT 'paid', b.id, b.title, b.currency, p.name, p.total, p.settled_at "
+      'FROM bill_participants p JOIN bills b ON b.id = p.bill_id '
+      'WHERE p.settled_at IS NOT NULL '
+      'AND p.id != b.payer_participant_id '
+      'ORDER BY at DESC LIMIT ?',
+      [limit],
+    );
+    return [
+      for (final r in rows)
+        ActivityEvent(
+          kind: r['kind'] == 'paid'
+              ? ActivityKind.paidBack
+              : ActivityKind.billCreated,
+          billId: r['bill_id']! as String,
+          billTitle: r['title']! as String,
+          currency: Currency.fromCode(r['currency'] as String?),
+          amount: Paise(r['amount']! as int),
+          at: DateTime.parse(r['at']! as String),
+          personName: r['person_name'] as String?,
+        ),
+    ];
+  }
 }

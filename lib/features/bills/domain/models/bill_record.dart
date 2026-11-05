@@ -206,3 +206,32 @@ class BillSummary {
 
   bool get isSettled => unsettledCount == 0;
 }
+
+enum ActivityKind { billCreated, paidBack }
+
+/// One entry in the recent-activity feed: a bill was saved, or someone paid the
+/// payer back.
+class ActivityEvent {
+  const ActivityEvent({
+    required this.kind,
+    required this.billId,
+    required this.billTitle,
+    required this.currency,
+    required this.amount,
+    required this.at,
+    this.personName,
+  });
+
+  final ActivityKind kind;
+  final String billId;
+  final String billTitle;
+  final Currency currency;
+
+  /// The bill's total for [ActivityKind.billCreated]; the amount paid back for
+  /// [ActivityKind.paidBack].
+  final Paise amount;
+  final DateTime at;
+
+  /// Who paid back, for [ActivityKind.paidBack].
+  final String? personName;
+}

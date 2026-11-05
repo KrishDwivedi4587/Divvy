@@ -163,6 +163,45 @@ void main() {
     });
   });
 
+  group('reviewTotals', () {
+    test('works out the totals with nobody assigned yet', () {
+      final d = goldenDraft().copyWith(
+        participants: const [],
+        allocations: const {},
+        clearPayer: true,
+      );
+      final r = d.reviewTotals();
+      expect(r.items, p(93000));
+      expect(r.charges['service'], p(4650));
+      expect(r.charges['gst'], p(4883));
+      expect(r.grand, p(102533));
+    });
+
+    test('agrees with the full settlement once people are added', () {
+      final d = goldenDraft();
+      expect(d.reviewTotals().grand, d.settle(now)!.grandTotal);
+    });
+
+    test('is zero for a draft with nothing in it', () {
+      final d = goldenDraft().copyWith(
+        items: const [],
+        adjustments: const [],
+        allocations: const {},
+      );
+      expect(d.reviewTotals().grand, p(0));
+    });
+
+    test('signs a discount negative', () {
+      final d = goldenDraft().copyWith(
+        adjustments: [
+          charge('disc', AdjustmentKind.discount, 9300, isNegative: true),
+        ],
+      );
+      expect(d.reviewTotals().charges['disc'], p(-9300));
+      expect(d.reviewTotals().grand, p(93000 - 9300));
+    });
+  });
+
   group('toRecord', () {
     test('snapshots totals and marks the payer settled', () {
       final r = recordFrom(goldenDraft());
