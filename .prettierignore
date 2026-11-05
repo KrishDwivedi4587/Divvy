@@ -5,6 +5,4 @@ android/
 ios/
 package-lock.json
 expo-env.d.ts
-
-# The roadmap is a planning artefact and must remain byte-identical.
-DIVVY_ROADMAP.md
+submission/

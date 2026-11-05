@@ -59,3 +59,10 @@ example
 # Windows OS files
 Thumbs.db
 ehthumbs.db
+
+# Local-only files (kept on disk, not in the repo)
+.claude/
+.vscode/
+CLAUDE.md
+AGENTS.md
+submission/

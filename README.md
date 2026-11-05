@@ -8,8 +8,7 @@ runs on an **iPhone through Expo Go**, developed from Windows, and works entirel
 on the device: no backend, no accounts, nothing uploaded.
 
 > **Status:** a working MVP for the three-day check-in. The core flow is built and
-> verified on web and in unit tests. It has **not yet been run on an iPhone**; see
-> [`docs/ios-demo.md`](docs/ios-demo.md) for the setup and the device checklist.
+> verified on web and in unit tests. It has **not yet been run on an iPhone**.
 
 ## What it does
 
@@ -27,7 +26,7 @@ guarantees the shares add up to the total exactly. It has 127 tests, including a
 
 - **No OCR.** The photo is shown beside manual entry; nothing is read from it
   and no extracted values are ever displayed. Reading receipts needs a native
-  module that Expo Go cannot load. See [`docs/checkin-plan.md`](docs/checkin-plan.md).
+  module that Expo Go cannot load.
 - **Equal split only.** Splitting by item is planned for a later version.
 - **Recent bills last for the session.** They are not saved to the device yet.
 
@@ -42,8 +41,7 @@ npx expo login        # sign in; also sign in inside Expo Go
 npx expo start --clear
 ```
 
-Scan the QR code with the iPhone's Camera app. Full instructions, troubleshooting
-and a demo script: [`docs/ios-demo.md`](docs/ios-demo.md).
+Scan the QR code with the iPhone's Camera app.
 
 If the Wi-Fi blocks the connection (campus networks often do):
 
@@ -71,20 +69,6 @@ npm run check         # typecheck, lint, format and tests
 - `src/features/` — photo and bill features
 - `src/platform/` — camera and gallery access
 - `src/store/` — state for the bill being built
-- `spikes/` — disposable technical experiments, never imported by `src/`
-
-## Documentation
-
-| File                                             | Contents                                               |
-| ------------------------------------------------ | ------------------------------------------------------ |
-| [`docs/checkin-plan.md`](docs/checkin-plan.md)   | Why the plan changed, what was built, what is deferred |
-| [`docs/ios-demo.md`](docs/ios-demo.md)           | Running on an iPhone, demo script, device checklist    |
-| [`docs/architecture.md`](docs/architecture.md)   | Structure, routes, data flow, separation of concerns   |
-| [`docs/money-model.md`](docs/money-model.md)     | How the money maths works and why it is exact          |
-| [`docs/design-tokens.md`](docs/design-tokens.md) | Visual system                                          |
-| [`docs/environment.md`](docs/environment.md)     | Verified toolchain notes                               |
-| [`docs/spike-log.md`](docs/spike-log.md)         | Record of the technical spikes                         |
-| [`DIVVY_ROADMAP.md`](DIVVY_ROADMAP.md)           | The original plan (unedited)                           |
 
 Built with [Expo](https://expo.dev) and
 [Expo Router](https://docs.expo.dev/router/introduction/).

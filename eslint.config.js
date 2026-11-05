@@ -1,7 +1,7 @@
 // ESLint flat config. Expo SDK 53+ uses the flat format.
 // https://docs.expo.dev/guides/using-eslint/
 //
-// Division of labour (see docs/development.md):
+// Division of labour:
 //   Prettier -> formatting        (npm run format:check)
 //   ESLint   -> code quality      (npm run lint)
 //
@@ -20,7 +20,7 @@ module.exports = defineConfig([
   expoConfig,
 
   {
-    ignores: ['dist/*', 'node_modules/*', '.expo/*', 'expo-env.d.ts'],
+    ignores: ['dist/*', 'node_modules/*', '.expo/*', 'expo-env.d.ts', 'submission/*'],
   },
 
   {
@@ -37,15 +37,6 @@ module.exports = defineConfig([
   // No override is added here: redefining the rule would mean depending on
   // @typescript-eslint/eslint-plugin transitively, and Expo's defaults are
   // already correct.
-
-  {
-    // Spikes are throwaway experiments whose entire output is often a
-    // console.log. They are still linted for real errors, but not for logging.
-    files: ['spikes/**'],
-    rules: {
-      'no-console': 'off',
-    },
-  },
 
   // Must stay last: turns off formatting rules that would fight Prettier.
   prettierConfig,
