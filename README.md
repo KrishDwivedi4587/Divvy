@@ -3,72 +3,107 @@
 Split a restaurant bill fairly. Photograph a receipt, add the people, and see
 exactly what each person owes, to the paisa.
 
-Mobile App Development mini project. React Native, Expo SDK 58, TypeScript. It
-runs on an **iPhone through Expo Go**, developed from Windows, and works entirely
-on the device: no backend, no accounts, nothing uploaded.
+Mobile App Development mini project. Flutter and Dart, Material 3, built for the
+iPhone and also configured for Android. It works entirely on the phone: no
+backend, no accounts, nothing uploaded.
 
-> **Status:** a working MVP for the three-day check-in. The core flow is built and
-> verified on web and in unit tests. It has **not yet been run on an iPhone**.
+> **Status:** feature complete and covered by automated tests (analysis, 798
+> unit, data and widget tests). It has **not been run on a physical iPhone or an
+> emulator**: development has been on Windows, which cannot build for iOS. See
+> [What still needs a real device](#what-still-needs-a-real-device).
 
 ## What it does
 
-1. **Take a photo** of a bill, or **upload one** from the gallery
-2. Preview it; retake or replace it
-3. Enter the amount, tax, tip and any extra charges
-4. Add the people
-5. See each person's exact share, with a breakdown, and share it as text
+1. **Take a photo** of a bill, or **upload one** from the gallery. Divvy reads
+   it straight away: items, prices, quantities, taxes and charges, the date, the
+   merchant and the total.
+2. **Check what was read.** Anything uncertain is marked. Fix a price, add or
+   delete an item, correct the receipt's total, or add a missing charge. If
+   nothing could be read, enter the bill by hand.
+3. **Add the people**, from the saved list or new.
+4. **Split it**: equally, by item (each item shared by whoever had it), or by
+   custom amounts.
+5. **Save it.** The bill, its receipt photo and each person's share are kept on
+   the phone. Past bills can be searched, sorted, filtered by date, opened, and
+   marked as paid back. People, balances and settings live on their own tabs.
 
 The amounts come from a calculation engine that works in integer paise and
-guarantees the shares add up to the total exactly. It has 127 tests, including a
-1,000-bill property test.
+guarantees the shares add up to the total exactly
+([how](docs/CALCULATION_ENGINE.md)). How a photo becomes a bill is in
+[docs/RECEIPT_OCR.md](docs/RECEIPT_OCR.md), and how the app is put together is in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## Not in this version
+## Run it
 
-- **No OCR.** The photo is shown beside manual entry; nothing is read from it
-  and no extracted values are ever displayed. Reading receipts needs a native
-  module that Expo Go cannot load.
-- **Equal split only.** Splitting by item is planned for a later version.
-- **Recent bills last for the session.** They are not saved to the device yet.
-
-## Run it on an iPhone
-
-You need a free [Expo](https://expo.dev/signup) account, **Expo Go** from the
-App Store, and the iPhone on the same Wi-Fi as the laptop.
+You need the [Flutter SDK](https://docs.flutter.dev/get-started/install) (3.47 or
+later, with Dart 3.13).
 
 ```bash
-npm install
-npx expo login        # sign in; also sign in inside Expo Go
-npx expo start --clear
+flutter pub get
+flutter run
 ```
 
-Scan the QR code with the iPhone's Camera app.
+`flutter run` picks a connected phone or emulator; `flutter devices` lists them.
 
-If the Wi-Fi blocks the connection (campus networks often do):
+Receipt reading uses Google ML Kit and the database uses SQLite, both of which
+need a phone, so the app runs on **iOS and Android only**: it will not run on the
+web or as a Windows desktop app.
+
+### iPhone
+
+Building for iOS needs a **Mac with Xcode**. Flutter cannot build iOS on Windows.
 
 ```bash
-npm run start:tunnel
+flutter pub get
+cd ios && pod install && cd ..
+flutter run -d <your iPhone>
 ```
 
-To try it in a browser instead:
+- The minimum iOS version is **15.5**, which ML Kit requires. It is set in
+  `ios/Podfile` and the Xcode project.
+- The camera and photo-library descriptions are already in
+  `ios/Runner/Info.plist`. The photo picker runs out of process, so the app
+  never needs library permission.
+- To install on your own iPhone, open `ios/Runner.xcworkspace` in Xcode and pick
+  your team under Signing & Capabilities.
+
+### Android
 
 ```bash
-npx expo start --web
+flutter pub get
+flutter run -d <your device or emulator>
 ```
 
 ## Checks
 
 ```bash
-npm run check         # typecheck, lint, format and tests
+dart format --set-exit-if-changed .
+flutter analyze
+flutter test
 ```
 
-## Project layout
+`flutter test` runs everything: the engine (including a 1,000-bill property
+test), the receipt parser, the SQLite repositories on a real database, and the
+screens, with a full create-to-restart journey. Widget tests save screenshots to
+`build/screens/` for looking at the design.
 
-- `src/app/` — Expo Router screens (routes only)
-- `src/core/` — the calculation engine and form-to-bill logic; pure TypeScript
-- `src/ui/` — design tokens and reusable components
-- `src/features/` — photo and bill features
-- `src/platform/` — camera and gallery access
-- `src/store/` — state for the bill being built
+## What still needs a real device
 
-Built with [Expo](https://expo.dev) and
-[Expo Router](https://docs.expo.dev/router/introduction/).
+These are covered by tests with fakes, but have not been seen working on a phone:
+
+- The camera and the photo library, including the permission prompts.
+- Real ML Kit recognition: it is tested through a fake recogniser and one
+  photographed sample, not on a range of real receipts.
+- Reading speed and memory on a large photo.
+- The look and feel on an iPhone 17: safe areas, the keyboard, scrolling and the
+  status bar. These are checked at iPhone-sized layouts in tests, not on the
+  device.
+
+## Not in this version
+
+- Only the Latin script is recognised. Receipts in other scripts are read badly
+  or not at all, and are entered by hand.
+- No sync, backup or export: the bills live on one phone. "Delete all data" in
+  Account erases them.
+- No notifications and no payments: Divvy records who owes whom, and does not move
+  money.
