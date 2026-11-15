@@ -8,6 +8,7 @@ import '../../../core/widgets/avatar.dart';
 import '../../../core/widgets/money_text.dart';
 import '../../../shared/providers/app_providers.dart';
 import '../../bills/domain/models/bill_record.dart';
+import '../../receipt_scanning/presentation/receipt_image.dart';
 
 /// One bill in a list: what it was, when, who was on it, what it came to, and
 /// whether anyone still owes.
@@ -43,22 +44,12 @@ class BillTile extends ConsumerWidget {
           overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: Space.xs),
-        Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: Space.sm,
-          children: [
-            Text(
-              friendlyDate(bill.billDate, now),
-              style: t.bodySmall?.copyWith(color: c.textSecondary),
-            ),
-            if (bill.hasReceipt)
-              Icon(
-                Icons.receipt_long_outlined,
-                size: 14,
-                color: c.textTertiary,
-                semanticLabel: 'Has a receipt photo',
-              ),
-          ],
+        Text(
+          [
+            friendlyDate(bill.billDate, now),
+            if (bill.hasReceipt) 'Receipt saved',
+          ].join(' · '),
+          style: t.bodySmall?.copyWith(color: c.textSecondary),
         ),
         const SizedBox(height: Space.sm),
         AvatarStack(names: bill.participantNames, size: 24),
@@ -96,6 +87,8 @@ class BillTile extends ConsumerWidget {
               )
             : Row(
                 children: [
+                  ReceiptThumb(relativePath: bill.receiptPath),
+                  const SizedBox(width: Space.md),
                   Expanded(child: details),
                   const SizedBox(width: Space.md),
                   Column(

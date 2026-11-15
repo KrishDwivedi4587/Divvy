@@ -51,6 +51,63 @@ class AccountRow extends StatelessWidget {
   }
 }
 
+/// A settings line with an on/off switch. The whole row toggles, not just the
+/// switch, and it is announced as one switch with its explanation.
+class AccountSwitchRow extends StatelessWidget {
+  const AccountSwitchRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+    super.key,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final t = Theme.of(context).textTheme;
+    return Semantics(
+      toggled: value,
+      label: '$title. $subtitle',
+      child: ExcludeSemantics(
+        child: InkWell(
+          onTap: () => onChanged(!value),
+          child: Padding(
+            padding: const EdgeInsets.all(Space.lg),
+            child: Row(
+              children: [
+                Icon(icon, size: 22),
+                const SizedBox(width: Space.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: t.bodyLarge),
+                      Text(
+                        subtitle,
+                        style: t.bodySmall?.copyWith(color: c.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: Space.md),
+                Switch.adaptive(value: value, onChanged: onChanged),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// A sheet body that offers a short list of options and pops with the one
 /// tapped.
 class ChoiceList<T> extends StatelessWidget {

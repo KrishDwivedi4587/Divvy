@@ -25,11 +25,17 @@ class ImagePickerPhotoSource implements ReceiptPhotoSource {
 
   final PickImage _pick;
 
+  /// Photos wider than this are scaled down, keeping their proportions.
+  static const double maxPhotoWidth = 2000;
+
   static Future<String?> _pickWithPlugin(PhotoSource source) async {
     final file = await ImagePicker().pickImage(
       source: source == PhotoSource.camera
           ? ImageSource.camera
           : ImageSource.gallery,
+      // Width only: a tall receipt keeps its legibility, and a 12 MP photo is
+      // brought down to a size recognition handles quickly and in little memory.
+      maxWidth: maxPhotoWidth,
       imageQuality: 85,
       requestFullMetadata: false,
     );

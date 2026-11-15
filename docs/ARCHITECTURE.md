@@ -32,7 +32,7 @@ why. It describes what exists in the repository; the calculation rules are in
 | Database            | SQLite via `sqflite` 2.4                                       |
 | Files               | `path_provider`, `path`                                        |
 | Formatting, ids     | `intl`, `uuid`                                                 |
-| Tests               | `flutter_test`, `integration_test`, `sqflite_common_ffi` (dev) |
+| Tests               | `flutter_test`, `sqflite_common_ffi` (dev)                     |
 
 `sqflite_common_ffi` is a dev dependency only: it lets the real SQLite run on a
 development machine so the repositories are tested for real rather than mocked.
@@ -70,7 +70,6 @@ lib/
     account/                settings, privacy, about
   shared/providers/         wiring: repositories, services, data providers
 test/                       unit, data, widget tests and fixtures
-integration_test/           the main journey, for a device
 tool/                       generate_app_icons.dart
 ```
 
@@ -122,10 +121,17 @@ behind endless re-reads.
 
 ```
 Source ──► Preview ──► Review ──► People ──► Split ──► Summary ──► save
-(camera,   (retake,    (edit     (add,       (equal,   (final       (BillService)
- gallery,   replace,    items,    saved       by item,  numbers)
- manual)    read)       charges)  people)     amounts)
+(camera,   (read       (check    (add,       (equal,   (final       (BillService)
+ gallery,   automatic-  items,    saved       by item,  numbers)
+ manual)    ally)       totals)   people)     amounts)
 ```
+
+A chosen photo is **read automatically**: the Preview screen shows it with a
+scanning sweep and moves to Review when the text has been read and parsed, so
+the usual path needs no tap and no typed total. The Account preference "Read
+receipts automatically" turns this off, and retake, replace and "Read again"
+stay available. [RECEIPT_OCR.md](RECEIPT_OCR.md) has the details, including how
+the receipt's printed total is chosen, compared with the items, and corrected.
 
 Every step edits the same `BillDraft` through `BillDraftNotifier`. The draft is
 pure data that can convert itself to the engine's `Bill`
@@ -182,6 +188,16 @@ Design decisions that protect data:
   missing, so an upgrade can never be half-applied. Version 1 is the first
   schema, so there are no migrations yet; the mechanism is tested with synthetic
   migrations, including one that fails part-way and must roll back.
+
+### Past bills list
+
+`BillRepository.list` takes the search text (title, merchant, participant
+names), a settled/unsettled status, a sort (newest, oldest, highest amount) and a
+`since` date. Dates are stored as `yyyy-MM-dd`, so `bill_date >= ?` is a plain
+calendar comparison. The screen offers search, the status pills, and one sheet
+for sort and date range (30 days, 90 days, this year). A row shows the receipt
+as a thumbnail (`ReceiptThumb`) and falls back to a quiet placeholder if the
+bill has no photo or the file is missing.
 
 ### Outstanding balances
 

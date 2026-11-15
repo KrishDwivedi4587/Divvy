@@ -10,6 +10,7 @@ class SqliteSettingsRepository implements SettingsRepository {
 
   static const _currencyKey = 'currency';
   static const _themeKey = 'theme_mode';
+  static const _autoReadKey = 'auto_read_receipts';
 
   @override
   Future<AppSettings> load() async {
@@ -20,6 +21,8 @@ class SqliteSettingsRepository implements SettingsRepository {
     return AppSettings(
       currency: Currency.fromCode(values[_currencyKey]),
       themeMode: AppThemeMode.fromWire(values[_themeKey]),
+      // On unless the user turned it off.
+      autoReadReceipts: values[_autoReadKey] != 'false',
     );
   }
 
@@ -37,4 +40,8 @@ class SqliteSettingsRepository implements SettingsRepository {
   @override
   Future<void> setThemeMode(AppThemeMode mode) =>
       _put(_themeKey, mode.wireName);
+
+  @override
+  Future<void> setAutoReadReceipts(bool value) =>
+      _put(_autoReadKey, value.toString());
 }

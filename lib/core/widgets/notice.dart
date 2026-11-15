@@ -5,22 +5,28 @@ import '../constants/spacing.dart';
 
 enum NoticeTone { info, warning, error }
 
+/// A tappable follow-up shown under a notice's message.
+class NoticeAction {
+  const NoticeAction(this.label, this.onPressed);
+
+  final String label;
+  final VoidCallback onPressed;
+}
+
 /// A message with an icon and words, so its meaning never depends on colour.
 class Notice extends StatelessWidget {
   const Notice({
     required this.message,
     this.tone = NoticeTone.info,
     this.title,
-    this.actionLabel,
-    this.onAction,
+    this.actions = const [],
     super.key,
   });
 
   final String message;
   final NoticeTone tone;
   final String? title;
-  final String? actionLabel;
-  final VoidCallback? onAction;
+  final List<NoticeAction> actions;
 
   @override
   Widget build(BuildContext context) {
@@ -54,18 +60,30 @@ class Notice extends StatelessWidget {
                   message,
                   style: theme.bodyMedium?.copyWith(color: c.textSecondary),
                 ),
-                if (actionLabel != null && onAction != null)
+                if (actions.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.only(top: Space.sm),
-                    child: GestureDetector(
-                      onTap: onAction,
-                      behavior: HitTestBehavior.opaque,
-                      child: Text(
-                        actionLabel!,
-                        style: theme.labelMedium?.copyWith(
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
+                    padding: const EdgeInsets.only(top: Space.xs),
+                    child: Wrap(
+                      spacing: Space.lg,
+                      children: [
+                        for (final a in actions)
+                          InkWell(
+                            onTap: a.onPressed,
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(minHeight: 44),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                widthFactor: 1,
+                                child: Text(
+                                  a.label,
+                                  style: theme.labelMedium?.copyWith(
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
               ],

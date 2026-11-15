@@ -37,6 +37,7 @@ class PhotoStrip extends StatelessWidget {
                       path: path,
                       fit: BoxFit.cover,
                       cacheWidth: 200,
+                      compact: true,
                     ),
                   ),
                 ),

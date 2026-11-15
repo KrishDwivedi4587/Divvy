@@ -21,12 +21,17 @@ class ReceiptImage extends StatelessWidget {
     required this.path,
     this.fit = BoxFit.contain,
     this.cacheWidth,
+    this.compact = false,
     super.key,
   });
 
   /// An absolute file path.
   final String path;
   final BoxFit fit;
+
+  /// For thumbnails too small to hold the full "couldn't show this photo"
+  /// message: a failure shows just an icon.
+  final bool compact;
 
   /// Decode at this width to keep memory down for large photos.
   final int? cacheWidth;
@@ -48,7 +53,16 @@ class ReceiptImage extends StatelessWidget {
           ),
         );
       },
-      errorBuilder: (context, error, stack) => const ReceiptUnavailable(),
+      errorBuilder: (context, error, stack) => compact
+          ? Center(
+              child: Icon(
+                Icons.broken_image_outlined,
+                size: 20,
+                color: context.colors.textTertiary,
+                semanticLabel: "Couldn't show this photo",
+              ),
+            )
+          : const ReceiptUnavailable(),
     );
   }
 }
@@ -104,6 +118,58 @@ class StoredReceiptImage extends ConsumerWidget {
               ? const ReceiptUnavailable()
               : ReceiptImage(path: path, fit: fit, cacheWidth: cacheWidth),
         );
+  }
+}
+
+/// A small receipt preview for list rows. A bill without a photo (or whose
+/// photo is missing) gets a quiet placeholder of the same size, so every row
+/// lines up and nothing ever shows an error box at this size.
+class ReceiptThumb extends ConsumerWidget {
+  const ReceiptThumb({this.relativePath, this.width = 44, super.key});
+
+  final String? relativePath;
+  final double width;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.colors;
+    final placeholder = Icon(
+      Icons.receipt_long_outlined,
+      size: 20,
+      color: c.textTertiary,
+    );
+    final path = relativePath;
+    final Widget child = path == null
+        ? placeholder
+        : ref
+              .watch(storedReceiptProvider(path))
+              .maybeWhen(
+                data: (file) => file == null
+                    ? placeholder
+                    : Image.file(
+                        File(file),
+                        fit: BoxFit.cover,
+                        alignment: Alignment.topCenter,
+                        cacheWidth: (width * 3).round(),
+                        excludeFromSemantics: true,
+                        errorBuilder: (_, _, _) => placeholder,
+                      ),
+                orElse: () => const SizedBox.shrink(),
+              );
+    return ExcludeSemantics(
+      child: Container(
+        width: width,
+        height: width * 1.25,
+        decoration: BoxDecoration(
+          color: c.surfaceMuted,
+          borderRadius: BorderRadius.circular(Corners.sm),
+          border: Border.all(color: c.border),
+        ),
+        clipBehavior: Clip.antiAlias,
+        alignment: Alignment.center,
+        child: child,
+      ),
+    );
   }
 }
 

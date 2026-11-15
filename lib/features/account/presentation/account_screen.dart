@@ -100,6 +100,16 @@ class AccountScreen extends ConsumerWidget {
                       detail: themeLabel(settings.themeMode),
                       onTap: () => _pickTheme(context, ref, settings),
                     ),
+                    const Hairline(indent: Space.lg),
+                    AccountSwitchRow(
+                      icon: Icons.document_scanner_outlined,
+                      title: 'Read receipts automatically',
+                      subtitle: 'Start reading as soon as you choose a photo',
+                      value: settings.autoReadReceipts,
+                      onChanged: (v) => ref
+                          .read(settingsProvider.notifier)
+                          .setAutoReadReceipts(v),
+                    ),
                   ],
                 ),
               ),

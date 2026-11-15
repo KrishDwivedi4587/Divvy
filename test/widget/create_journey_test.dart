@@ -37,14 +37,11 @@ void main() {
     ))!;
     await openNewBill(tester, app);
 
-    // 1. Take a photo.
+    // 1. Take a photo. Divvy reads it by itself and lands on the review, with
+    // no "Read receipt" tap and no total typed in.
     await tester.tap(find.text('Take photo'));
-    await settle(tester);
-    expect(find.text('Check the photo'), findsOneWidget);
-
-    // 2. Read it.
-    await tester.tap(find.widgetWithText(FilledButton, 'Read receipt'));
     await waitForText(tester, 'Paneer Tikka');
+    expect(app.recognizer.requested, hasLength(1));
     expect(find.text('Review'), findsWidgets);
     expect(find.text('Paneer Tikka'), findsOneWidget);
     expect(find.text('Butter Naan × 4'), findsOneWidget);

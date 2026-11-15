@@ -165,3 +165,65 @@ class TotalLine extends StatelessWidget {
     );
   }
 }
+
+/// The total printed on the receipt, under Divvy's own, tappable to correct.
+/// A tick says the two agree, so a user knows nothing was missed.
+class PrintedTotalRow extends StatelessWidget {
+  const PrintedTotalRow({
+    required this.amount,
+    required this.currency,
+    required this.matches,
+    required this.onTap,
+    super.key,
+  });
+
+  final Paise amount;
+  final Currency currency;
+  final bool matches;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final t = Theme.of(context).textTheme;
+    return Semantics(
+      button: true,
+      label:
+          'Printed on receipt ${formatMoney(amount, currency)}, '
+          '${matches ? 'matches' : 'does not match'}. Tap to correct.',
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: Corners.control,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 44),
+          child: Row(
+            children: [
+              Icon(
+                matches
+                    ? Icons.check_circle_outline_rounded
+                    : Icons.warning_amber_rounded,
+                size: 16,
+                color: matches ? c.textSecondary : c.warning,
+              ),
+              const SizedBox(width: Space.sm),
+              Expanded(
+                child: Text(
+                  'Printed on receipt',
+                  style: t.bodySmall?.copyWith(color: c.textSecondary),
+                ),
+              ),
+              MoneyText(
+                amount,
+                currency,
+                style: t.bodySmall?.copyWith(color: c.textSecondary),
+              ),
+              const SizedBox(width: Space.sm),
+              Icon(Icons.edit_outlined, size: 16, color: c.textTertiary),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

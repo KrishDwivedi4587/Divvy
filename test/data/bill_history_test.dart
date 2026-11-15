@@ -107,4 +107,49 @@ void main() {
     expect(await bills.list(), isEmpty);
     expect(await bills.count(), 0);
   });
+
+  test('sorts oldest first, or by the largest total', () async {
+    await seed();
+    expect((await bills.list(sort: BillSort.oldest)).map((x) => x.id), [
+      'b1',
+      'b2',
+      'b3',
+    ]);
+    // Every sample bill has the same total, so the tie falls back to newest.
+    expect((await bills.list(sort: BillSort.highest)).map((x) => x.id), [
+      'b3',
+      'b2',
+      'b1',
+    ]);
+  });
+
+  test('only reaches back as far as the chosen date', () async {
+    await seed();
+    final since = await bills.list(since: DateTime(2026, 10, 20));
+    // The cut-off day itself is included.
+    expect(since.map((x) => x.id), ['b3', 'b2']);
+    expect(await bills.list(since: DateTime(2026, 11, 3)), isEmpty);
+  });
+
+  test('date range, status and search combine', () async {
+    await seed();
+    final r = await bills.list(query: 'priya', since: DateTime(2026, 10, 15));
+    expect(r.map((x) => x.id), ['b3']);
+  });
+
+  test(
+    'a summary carries the receipt path so lists can show a thumbnail',
+    () async {
+      await seed();
+      expect((await bills.list()).every((x) => x.receiptPath == null), isTrue);
+    },
+  );
+
+  test('periods work out their start from today', () {
+    final today = DateTime(2026, 11, 15, 18, 30);
+    expect(BillPeriod.anyTime.since(today), isNull);
+    expect(BillPeriod.last30Days.since(today), DateTime(2026, 10, 16));
+    expect(BillPeriod.last90Days.since(today), DateTime(2026, 8, 17));
+    expect(BillPeriod.thisYear.since(today), DateTime(2026));
+  });
 }

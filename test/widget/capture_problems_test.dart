@@ -15,6 +15,7 @@ void main() {
       tester,
       camera: const PhotoDenied(),
       gallery: PhotoPicked(receiptPhoto, PhotoSource.gallery),
+      autoRead: false,
     );
     await openNewBill(tester, app);
 
@@ -41,6 +42,7 @@ void main() {
         "The camera isn't available on this device. "
         'Choose a photo from your library instead.',
       ),
+      autoRead: false,
     );
     await openNewBill(tester, app);
 
@@ -62,6 +64,7 @@ void main() {
       tester,
       camera: PhotoPicked(receiptPhoto, PhotoSource.camera),
       gallery: PhotoPicked(receiptPhoto, PhotoSource.gallery),
+      autoRead: false,
     );
     await openNewBill(tester, app);
     await tester.tap(find.text('Take photo'));
@@ -89,6 +92,7 @@ void main() {
     final app = await appWith(
       tester,
       camera: PhotoPicked(broken.path, PhotoSource.camera),
+      autoRead: false,
     );
     await openNewBill(tester, app);
 
@@ -110,6 +114,7 @@ void main() {
       tester,
       gallery: PhotoPicked(receiptPhoto, PhotoSource.gallery),
       camera: const PhotoDenied(),
+      autoRead: false,
     );
     await openNewBill(tester, app);
     await tester.tap(find.text('Upload from gallery'));

@@ -14,6 +14,7 @@ import '../../../shared/providers/data_providers.dart';
 import '../../bills/domain/bill_repository.dart';
 import '../../bills/domain/models/bill_record.dart';
 import '../../bills/presentation/start_bill.dart';
+import 'bill_filter_sheet.dart';
 import 'bill_tile.dart';
 import 'status_filter_chips.dart';
 
@@ -29,6 +30,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   Timer? _debounce;
   String _text = '';
   BillStatusFilter _status = BillStatusFilter.all;
+  BillSort _sort = BillSort.newest;
+  BillPeriod _period = BillPeriod.anyTime;
 
   @override
   void dispose() {
@@ -45,6 +48,15 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
     });
   }
 
+  Future<void> _openFilters() async {
+    final view = await showBillFilters(context, sort: _sort, period: _period);
+    if (view == null || !mounted) return;
+    setState(() {
+      _sort = view.sort;
+      _period = view.period;
+    });
+  }
+
   void _clearSearch() {
     _search.clear();
     _debounce?.cancel();
@@ -55,10 +67,16 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   Widget build(BuildContext context) {
     final c = context.colors;
     final t = Theme.of(context).textTheme;
-    final query = BillQuery(text: _text, status: _status);
+    final query = BillQuery(
+      text: _text,
+      status: _status,
+      sort: _sort,
+      period: _period,
+    );
     final bills = ref.watch(billListProvider(query));
     final anyBills = ref.watch(billCountProvider).value ?? 0;
-    final filtering = _text.isNotEmpty || _status != BillStatusFilter.all;
+    final filtering = query.isFiltering;
+    final reordered = _sort != BillSort.newest;
 
     return SafeArea(
       bottom: false,
@@ -85,18 +103,35 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                     padding: const EdgeInsets.symmetric(
                       horizontal: Space.gutter,
                     ),
-                    child: AppTextField(
-                      controller: _search,
-                      hint: 'Search bills or people',
-                      onChanged: _onSearchChanged,
-                      textInputAction: TextInputAction.search,
-                      suffix: _search.text.isEmpty
-                          ? Icon(Icons.search_rounded, color: c.textTertiary)
-                          : IconButton(
-                              tooltip: 'Clear search',
-                              icon: const Icon(Icons.close_rounded, size: 20),
-                              onPressed: _clearSearch,
-                            ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: AppTextField(
+                            controller: _search,
+                            hint: 'Search bills or people',
+                            onChanged: _onSearchChanged,
+                            textInputAction: TextInputAction.search,
+                            suffix: _search.text.isEmpty
+                                ? Icon(
+                                    Icons.search_rounded,
+                                    color: c.textTertiary,
+                                  )
+                                : IconButton(
+                                    tooltip: 'Clear search',
+                                    icon: const Icon(
+                                      Icons.close_rounded,
+                                      size: 20,
+                                    ),
+                                    onPressed: _clearSearch,
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(width: Space.sm),
+                        FilterButton(
+                          active: reordered || _period != BillPeriod.anyTime,
+                          onTap: _openFilters,
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: Space.md),
@@ -132,10 +167,18 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
   ) {
     if (list.isEmpty) {
       return filtering
-          ? const EmptyState(
+          ? EmptyState(
               icon: Icons.search_off_rounded,
               title: 'No bills match',
               message: 'Try a different search or filter.',
+              actionLabel: 'Clear filters',
+              onAction: () {
+                _clearSearch();
+                setState(() {
+                  _status = BillStatusFilter.all;
+                  _period = BillPeriod.anyTime;
+                });
+              },
             )
           : EmptyState(
               icon: Icons.receipt_long_outlined,

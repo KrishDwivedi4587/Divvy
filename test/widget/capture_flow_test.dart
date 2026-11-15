@@ -21,10 +21,13 @@ void main() {
     await screenshot(tester, 'create_source');
   });
 
-  testWidgets('a photo from the camera reaches the preview', (tester) async {
+  testWidgets('with auto-read off, a camera photo waits on the preview', (
+    tester,
+  ) async {
     final app = await appWith(
       tester,
       camera: PhotoPicked(receiptPhoto, PhotoSource.camera),
+      autoRead: false,
     );
     await openNewBill(tester, app);
 
@@ -34,6 +37,7 @@ void main() {
     expect(app.photos.cameraCalls, 1);
     expect(find.text('Check the photo'), findsOneWidget);
     expect(find.text('Read receipt'), findsOneWidget);
+    expect(app.recognizer.requested, isEmpty);
     expect(find.text('Retake'), findsOneWidget);
     expect(find.text('Replace'), findsOneWidget);
     expect(app.container.read(billDraftProvider).imagePath, receiptPhoto);
@@ -48,6 +52,7 @@ void main() {
     final app = await appWith(
       tester,
       gallery: PhotoPicked(receiptPhoto, PhotoSource.gallery),
+      autoRead: false,
     );
     await openNewBill(tester, app);
 

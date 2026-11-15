@@ -25,6 +25,7 @@ import 'item_editor_sheet.dart';
 import 'review_notices.dart';
 import 'review_parts.dart';
 import 'review_rows.dart';
+import 'total_editor_sheet.dart';
 
 /// Step 2: check what was read, correct it, and add anything missing. Works the
 /// same whether the bill came from a photo or is being entered by hand.
@@ -47,6 +48,49 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
   }
 
   BillDraftNotifier get _draft => ref.read(billDraftProvider.notifier);
+
+  /// True once the user has picked or typed the receipt's total, which settles
+  /// the question of which of several totals is the payable one.
+  bool _totalConfirmed = false;
+
+  void _chooseTotal(Paise total) {
+    _draft.setStatedTotal(total);
+    setState(() => _totalConfirmed = true);
+  }
+
+  Future<void> _editStatedTotal() async {
+    final draft = ref.read(billDraftProvider);
+    final total = await showTotalEditor(
+      context,
+      currency: draft.currency,
+      current: draft.statedTotal,
+    );
+    if (total != null) _chooseTotal(total);
+  }
+
+  /// Adds the gap between the receipt's total and Divvy's as a charge (or a
+  /// discount), so what is saved matches the receipt. The user chose this, and
+  /// it appears in the charges list like any other line.
+  void _addDifference() {
+    final draft = ref.read(billDraftProvider);
+    final stated = draft.statedTotal;
+    if (stated == null) return;
+    final gap = stated - draft.reviewTotals().grand;
+    if (gap == Paise.zero) return;
+    final discount = gap.isNegative;
+    final size = discount ? -gap : gap;
+    final kind = discount ? AdjustmentKind.discount : AdjustmentKind.other;
+    _draft.addAdjustment(
+      DraftAdjustment(
+        id: _draft.newAdjustmentId(),
+        label: size.value < 100 ? 'Round off' : defaultChargeLabel(kind),
+        kind: kind,
+        mode: AdjustmentMode.amount,
+        value: size.value,
+        isNegative: discount,
+      ),
+    );
+  }
 
   Future<void> _editItem(DraftItem? existing) async {
     final draft = ref.read(billDraftProvider);
@@ -171,6 +215,12 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
           stated: draft.statedTotal,
           computed: totals.grand,
           currency: draft.currency,
+          totalConfirmed: _totalConfirmed,
+          actions: TotalActions(
+            choose: _chooseTotal,
+            edit: _editStatedTotal,
+            addDifference: _addDifference,
+          ),
         ),
         AppCard(
           child: Column(
@@ -294,6 +344,15 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                 currency: draft.currency,
                 strong: true,
               ),
+              if (draft.statedTotal != null) ...[
+                const SizedBox(height: Space.xs),
+                PrintedTotalRow(
+                  amount: draft.statedTotal!,
+                  currency: draft.currency,
+                  matches: draft.statedTotal == totals.grand,
+                  onTap: _editStatedTotal,
+                ),
+              ],
             ],
           ),
         ),

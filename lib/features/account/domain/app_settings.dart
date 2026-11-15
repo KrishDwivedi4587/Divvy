@@ -18,16 +18,26 @@ class AppSettings {
   const AppSettings({
     this.currency = Currency.inr,
     this.themeMode = AppThemeMode.system,
+    this.autoReadReceipts = true,
   });
 
   /// The currency new bills start in.
   final Currency currency;
   final AppThemeMode themeMode;
 
-  AppSettings copyWith({Currency? currency, AppThemeMode? themeMode}) {
+  /// Read a receipt as soon as its photo is chosen. When off, the photo is
+  /// shown first and reading starts only when the user asks.
+  final bool autoReadReceipts;
+
+  AppSettings copyWith({
+    Currency? currency,
+    AppThemeMode? themeMode,
+    bool? autoReadReceipts,
+  }) {
     return AppSettings(
       currency: currency ?? this.currency,
       themeMode: themeMode ?? this.themeMode,
+      autoReadReceipts: autoReadReceipts ?? this.autoReadReceipts,
     );
   }
 }
@@ -36,4 +46,5 @@ abstract interface class SettingsRepository {
   Future<AppSettings> load();
   Future<void> setCurrency(Currency currency);
   Future<void> setThemeMode(AppThemeMode mode);
+  Future<void> setAutoReadReceipts(bool value);
 }

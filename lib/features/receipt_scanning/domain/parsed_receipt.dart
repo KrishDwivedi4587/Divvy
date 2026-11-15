@@ -20,6 +20,11 @@ enum ParseWarning {
   /// No total was found on the receipt.
   totalNotFound,
 
+  /// Several different totals of the same standing were found and none of them
+  /// equals the items plus charges, so the parser could not tell which one is
+  /// payable.
+  multipleTotals,
+
   /// The items do not add up to the printed subtotal.
   itemsDoNotMatchSubtotal,
 
@@ -103,6 +108,7 @@ class ParsedReceipt {
     this.currency,
     this.subtotal,
     this.total,
+    this.totalCandidates = const [],
   });
 
   final String? merchant;
@@ -116,6 +122,12 @@ class ParsedReceipt {
 
   /// The grand total printed on the receipt, if there was one.
   final Paise? total;
+
+  /// Every distinct amount that sat on a "total" row, ordered by where it last
+  /// appeared (the bottom-most is last). More than one means the receipt had, say, a bare "Total" and a "Grand
+  /// Total": [total] is the best guess and the review screen lets the user pick
+  /// another.
+  final List<Paise> totalCandidates;
 
   /// What the recogniser returned, untouched.
   final String rawText;

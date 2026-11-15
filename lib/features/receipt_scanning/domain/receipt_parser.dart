@@ -329,6 +329,39 @@ class ReceiptParser {
     }
 
     final itemsSum = sumPaise(finalItems.map((i) => i.lineTotal));
+
+    // Which printed total is the payable one? A plainly worded label ("Grand
+    // Total", "Net Payable") outranks a bare "Total". Among candidates of the
+    // same rank, one that equals what the items and charges come to beats the
+    // rest, since that is far better evidence than position; failing that, the
+    // last printed wins. If the receipt printed several different amounts and
+    // nothing settles it, the user is asked rather than guessed for.
+    List<Paise> distinct(Iterable<Paise> amounts) {
+      // Ordered by last appearance, so `.last` is the bottom-most amount.
+      final out = <Paise>[];
+      for (final a in amounts) {
+        out
+          ..remove(a)
+          ..add(a);
+      }
+      return out;
+    }
+
+    final candidates = distinct(totals.map((t) => t.amount));
+    final strong = distinct(totals.where((t) => t.strong).map((t) => t.amount));
+    if (candidates.isNotEmpty) {
+      final pool = strong.isNotEmpty ? strong : candidates;
+      final computedTotal = itemsSum + chargesSum;
+      total = finalItems.isNotEmpty && pool.contains(computedTotal)
+          ? computedTotal
+          : pool.last;
+    }
+    final reconciled = finalItems.isNotEmpty && total == itemsSum + chargesSum;
+    final unsettled = strong.isNotEmpty
+        ? strong.length > 1
+        : candidates.length > 1;
+    if (unsettled && !reconciled) warnings.add(ParseWarning.multipleTotals);
+
     if (finalItems.isEmpty) warnings.add(ParseWarning.noItemsFound);
     if (subtotal != null && finalItems.isNotEmpty && itemsSum != subtotal) {
       warnings.add(ParseWarning.itemsDoNotMatchSubtotal);
@@ -363,6 +396,7 @@ class ReceiptParser {
       charges: charges,
       subtotal: subtotal,
       total: total,
+      totalCandidates: candidates,
       rawText: recognized.rawText,
       rowsText: rowsText,
       warnings: warnings,

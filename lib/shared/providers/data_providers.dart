@@ -22,19 +22,36 @@ final dataRevisionProvider = NotifierProvider<DataRevision, int>(
   DataRevision.new,
 );
 
-/// What a history list is filtered by.
+/// What a history list is filtered and ordered by.
 class BillQuery {
-  const BillQuery({this.text = '', this.status = BillStatusFilter.all});
+  const BillQuery({
+    this.text = '',
+    this.status = BillStatusFilter.all,
+    this.sort = BillSort.newest,
+    this.period = BillPeriod.anyTime,
+  });
 
   final String text;
   final BillStatusFilter status;
+  final BillSort sort;
+  final BillPeriod period;
+
+  /// True when the list is narrowed in any way (not merely reordered).
+  bool get isFiltering =>
+      text.isNotEmpty ||
+      status != BillStatusFilter.all ||
+      period != BillPeriod.anyTime;
 
   @override
   bool operator ==(Object other) =>
-      other is BillQuery && other.text == text && other.status == status;
+      other is BillQuery &&
+      other.text == text &&
+      other.status == status &&
+      other.sort == sort &&
+      other.period == period;
 
   @override
-  int get hashCode => Object.hash(text, status);
+  int get hashCode => Object.hash(text, status, sort, period);
 }
 
 class SettingsNotifier extends AsyncNotifier<AppSettings> {
@@ -52,6 +69,13 @@ class SettingsNotifier extends AsyncNotifier<AppSettings> {
     await ref.read(settingsRepositoryProvider).setThemeMode(mode);
     state = AsyncData(
       (state.value ?? const AppSettings()).copyWith(themeMode: mode),
+    );
+  }
+
+  Future<void> setAutoReadReceipts(bool value) async {
+    await ref.read(settingsRepositoryProvider).setAutoReadReceipts(value);
+    state = AsyncData(
+      (state.value ?? const AppSettings()).copyWith(autoReadReceipts: value),
     );
   }
 }
@@ -97,7 +121,12 @@ final billListProvider = FutureProvider.autoDispose
       ref.watch(dataRevisionProvider);
       return ref
           .watch(billRepositoryProvider)
-          .list(query: query.text, status: query.status);
+          .list(
+            query: query.text,
+            status: query.status,
+            sort: query.sort,
+            since: query.period.since(ref.watch(clockProvider)()),
+          );
     });
 
 final recentBillsProvider = FutureProvider<List<BillSummary>>((ref) {

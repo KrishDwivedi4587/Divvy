@@ -92,6 +92,11 @@ class BillDraftNotifier extends Notifier<BillDraft> {
     );
   }
 
+  /// The total printed on the receipt, as chosen or corrected by the user. It
+  /// is only ever compared with what the items and charges come to.
+  void setStatedTotal(Paise total) =>
+      state = state.copyWith(statedTotal: total);
+
   void setMerchant(String value) => state = state.copyWith(merchant: value);
   void setDate(DateTime value) => state = state.copyWith(billDate: value);
   void setCurrency(Currency value) => state = state.copyWith(currency: value);

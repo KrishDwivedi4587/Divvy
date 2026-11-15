@@ -1,4 +1,5 @@
 import 'package:divvy/features/receipt_scanning/domain/receipt_photo_source.dart';
+import 'package:divvy/shared/providers/data_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -14,18 +15,31 @@ final String receiptPhoto = p.absolute(
 
 /// An app whose camera, gallery and recogniser return what is given. The
 /// recogniser reads the Spice Table sample unless told otherwise.
+///
+/// A photo is read automatically, as in the real app. Pass `autoRead: false`
+/// to test the path where the user starts the reading themselves.
 Future<TestApp> appWith(
   WidgetTester tester, {
   PhotoResult camera = const PhotoCancelled(),
   PhotoResult gallery = const PhotoCancelled(),
   FakeTextRecognizer? recognizer,
+  bool autoRead = true,
 }) async {
-  return (await tester.runAsync(
-    () => makeApp(
+  return (await tester.runAsync(() async {
+    final app = await makeApp(
       photos: FakePhotoSource(camera: camera, gallery: gallery),
       recognizer: recognizer ?? FakeTextRecognizer(result: layout(spiceTable)),
-    ),
-  ))!;
+    );
+    if (!autoRead) {
+      // Wait for the stored settings to load first, or they would replace the
+      // change when they arrive.
+      await app.container.read(settingsProvider.future);
+      await app.container
+          .read(settingsProvider.notifier)
+          .setAutoReadReceipts(false);
+    }
+    return app;
+  }))!;
 }
 
 /// Home, then New bill, as a user gets to the first step.

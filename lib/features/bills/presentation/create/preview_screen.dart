@@ -10,14 +10,23 @@ import '../../../../core/widgets/dialogs.dart';
 import '../../../../core/widgets/screen_scaffold.dart';
 import '../../../../core/widgets/states.dart';
 import '../../../../core/widgets/step_progress.dart';
+import '../../../../shared/providers/data_providers.dart';
+import '../../../account/domain/app_settings.dart';
 import '../../../receipt_scanning/application/photo_capture_notifier.dart';
 import '../../../receipt_scanning/application/scan_notifier.dart';
 import '../../../receipt_scanning/domain/receipt_photo_source.dart';
 import '../../../receipt_scanning/presentation/capture_problem_notice.dart';
 import '../../../receipt_scanning/presentation/receipt_image.dart';
+import '../../../receipt_scanning/presentation/scan_sweep.dart';
 import '../../application/bill_draft_notifier.dart';
 
-/// Step 1b: check the photo, retake or replace it, then have it read.
+/// Step 1b: the photo, read automatically.
+///
+/// A photo that has just been chosen starts being read straight away and the
+/// screen moves on to the review when it is done, so the usual path needs no
+/// tap here. The buttons remain for the other paths: retaking or replacing the
+/// photo, reading it again, skipping to manual entry, and reading by hand when
+/// the "Read receipts automatically" preference is off.
 class PreviewScreen extends ConsumerStatefulWidget {
   const PreviewScreen({super.key});
 
@@ -26,6 +35,35 @@ class PreviewScreen extends ConsumerStatefulWidget {
 }
 
 class _PreviewScreenState extends ConsumerState<PreviewScreen> {
+  /// The photo this screen last started reading on its own, so one photo is
+  /// read once however often the screen is rebuilt or returned to.
+  String? _autoRead;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _readAutomatically());
+  }
+
+  /// Starts reading when there is a photo nobody has read yet and the
+  /// preference allows it. If items are already on the bill (typed by hand, or
+  /// from an earlier photo) [_read] asks before replacing them, so nothing the
+  /// user entered is overwritten silently.
+  void _readAutomatically() {
+    if (!mounted) return;
+    final settings = ref.read(settingsProvider).value ?? const AppSettings();
+    final path = ref.read(billDraftProvider).imagePath;
+    if (path == null ||
+        path == _autoRead ||
+        !settings.autoReadReceipts ||
+        ref.read(scanProvider) is! ScanIdle ||
+        ref.read(photoCaptureProvider).busy) {
+      return;
+    }
+    _autoRead = path;
+    _read(path);
+  }
+
   Future<void> _read(String path) async {
     final draft = ref.read(billDraftProvider);
     if (draft.items.isNotEmpty) {
@@ -50,9 +88,15 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // A retake or replacement brings a new photo once the picker closes: read
+    // that one too.
+    ref.listen(photoCaptureProvider, (previous, next) {
+      if (previous?.busy == true && !next.busy) _readAutomatically();
+    });
     final c = context.colors;
     final path = ref.watch(billDraftProvider.select((d) => d.imagePath));
-    final scanning = ref.watch(scanProvider) is Scanning;
+    final scan = ref.watch(scanProvider);
+    final scanning = scan is Scanning;
     final capture = ref.watch(photoCaptureProvider);
     final locked = scanning || capture.busy;
 
@@ -76,7 +120,11 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           AppButton(
-            label: scanning ? 'Reading your receipt…' : 'Read receipt',
+            label: scanning
+                ? 'Reading your receipt…'
+                : scan is ScanIdle
+                ? 'Read receipt'
+                : 'Read again',
             icon: Icons.document_scanner_outlined,
             loading: scanning,
             onPressed: locked ? null : () => _read(path),
@@ -103,13 +151,21 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                 border: Border.all(color: c.border),
               ),
               clipBehavior: Clip.antiAlias,
-              child: ReceiptImage(path: path, cacheWidth: 1400),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ReceiptImage(path: path, cacheWidth: 1400),
+                  if (scanning) const ScanSweep(),
+                ],
+              ),
             ),
           ),
         ),
         const SizedBox(height: Space.md),
         Text(
-          'Tap the photo to zoom. Check the prices are readable.',
+          scanning
+              ? 'Reading the items, prices and totals…'
+              : 'Tap the photo to zoom. Check the prices are readable.',
           style: Theme.of(context).textTheme.bodySmall
               ?.copyWith(color: c.textSecondary),
           textAlign: TextAlign.center,

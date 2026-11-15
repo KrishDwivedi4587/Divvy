@@ -4,6 +4,28 @@ import 'models/bill_record.dart';
 /// Which bills a history list should show.
 enum BillStatusFilter { all, unsettled, settled }
 
+/// How a history list is ordered.
+enum BillSort { newest, oldest, highest }
+
+/// How far back a history list reaches.
+enum BillPeriod {
+  anyTime,
+  last30Days,
+  last90Days,
+  thisYear;
+
+  /// The earliest bill date included, given today, or null for no limit.
+  DateTime? since(DateTime today) {
+    final day = DateTime(today.year, today.month, today.day);
+    return switch (this) {
+      BillPeriod.anyTime => null,
+      BillPeriod.last30Days => DateTime(day.year, day.month, day.day - 30),
+      BillPeriod.last90Days => DateTime(day.year, day.month, day.day - 90),
+      BillPeriod.thisYear => DateTime(day.year),
+    };
+  }
+}
+
 /// Storage for saved bills. Implemented over SQLite in `data/repositories`.
 abstract interface class BillRepository {
   /// Saves a whole bill atomically: the bill, its participants, items,
@@ -13,10 +35,14 @@ abstract interface class BillRepository {
 
   Future<BillRecord?> byId(String id);
 
-  /// Newest first. [query] matches the title, merchant and participant names.
+  /// [query] matches the title, merchant and participant names. [since]
+  /// drops bills dated before that day. Newest first unless [sort] says
+  /// otherwise.
   Future<List<BillSummary>> list({
     String query = '',
     BillStatusFilter status = BillStatusFilter.all,
+    BillSort sort = BillSort.newest,
+    DateTime? since,
     int? limit,
   });
 

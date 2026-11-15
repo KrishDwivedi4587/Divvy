@@ -188,7 +188,7 @@ class BillSummary {
     required this.grandTotal,
     required this.participantNames,
     required this.unsettledCount,
-    required this.hasReceipt,
+    this.receiptPath,
     this.merchant,
   });
 
@@ -202,7 +202,12 @@ class BillSummary {
 
   /// How many people still owe the payer.
   final int unsettledCount;
-  final bool hasReceipt;
+
+  /// Where the receipt photo is kept (relative to the app's storage), if the
+  /// bill has one.
+  final String? receiptPath;
+
+  bool get hasReceipt => receiptPath != null;
 
   bool get isSettled => unsettledCount == 0;
 }

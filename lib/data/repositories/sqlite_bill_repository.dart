@@ -228,16 +228,24 @@ class SqliteBillRepository implements BillRepository {
     return '%$escaped%';
   }
 
+  static String _orderBy(BillSort sort) => switch (sort) {
+    BillSort.newest => 'b.bill_date DESC, b.created_at DESC, b.id DESC',
+    BillSort.oldest => 'b.bill_date ASC, b.created_at ASC, b.id ASC',
+    BillSort.highest =>
+      'b.grand_total DESC, b.bill_date DESC, b.created_at DESC, b.id DESC',
+  };
+
   Future<List<BillSummary>> _summaries(
     String where,
     List<Object?> args, {
+    BillSort sort = BillSort.newest,
     int? limit,
   }) async {
     final rows = await _db.rawQuery(
       'SELECT b.id, b.title, b.merchant, b.bill_date, b.currency, '
       'b.grand_total, b.receipt_path, $_unsettledCount AS unsettled '
       'FROM bills b ${where.isEmpty ? '' : 'WHERE $where'} '
-      'ORDER BY b.bill_date DESC, b.created_at DESC, b.id DESC '
+      'ORDER BY ${_orderBy(sort)} '
       '${limit == null ? '' : 'LIMIT $limit'}',
       args,
     );
@@ -268,7 +276,7 @@ class SqliteBillRepository implements BillRepository {
           grandTotal: Paise(r['grand_total']! as int),
           participantNames: names[r['id']! as String] ?? const [],
           unsettledCount: r['unsettled']! as int,
-          hasReceipt: r['receipt_path'] != null,
+          receiptPath: r['receipt_path'] as String?,
         ),
     ];
   }
@@ -277,6 +285,8 @@ class SqliteBillRepository implements BillRepository {
   Future<List<BillSummary>> list({
     String query = '',
     BillStatusFilter status = BillStatusFilter.all,
+    BillSort sort = BillSort.newest,
+    DateTime? since,
     int? limit,
   }) {
     final clauses = <String>[];
@@ -299,7 +309,12 @@ class SqliteBillRepository implements BillRepository {
       case BillStatusFilter.settled:
         clauses.add('$_unsettledCount = 0');
     }
-    return _summaries(clauses.join(' AND '), args, limit: limit);
+    if (since != null) {
+      // Dates are stored as yyyy-MM-dd, which sorts the same as a calendar.
+      clauses.add('b.bill_date >= ?');
+      args.add(_dateText(since));
+    }
+    return _summaries(clauses.join(' AND '), args, sort: sort, limit: limit);
   }
 
   @override

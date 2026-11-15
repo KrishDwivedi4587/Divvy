@@ -1,7 +1,12 @@
+import 'dart:io';
+
+import 'package:divvy/data/repositories/local_receipt_storage.dart';
 import 'package:divvy/data/repositories/sqlite_bill_repository.dart';
 import 'package:divvy/features/bills/domain/bill_draft.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 import '../support/app_container.dart';
 import '../support/draft_builders.dart';
@@ -119,6 +124,154 @@ void main() {
     expect(find.text('Biryani House'), findsOneWidget);
     expect(find.text('Cafe Mocha'), findsOneWidget);
     semantics.dispose();
+  });
+
+  testWidgets('sort and date range narrow and reorder the list', (
+    tester,
+  ) async {
+    final app = (await tester.runAsync(makeApp))!;
+    await seed(tester, app);
+    await pumpApp(tester, app, location: '/history');
+    expect(find.byTooltip('Clear search'), findsNothing);
+
+    Future<void> choose(List<String> options) async {
+      await tester.tap(find.byIcon(Icons.tune_rounded));
+      await settle(tester);
+      for (final o in options) {
+        await tester.tap(find.text(o));
+        await settle(tester);
+      }
+      await tester.tap(find.widgetWithText(FilledButton, 'Show bills'));
+      await settle(tester);
+    }
+
+    double top(String name) => tester.getTopLeft(find.text(name)).dy;
+
+    // Oldest first reverses the order.
+    await choose(['Oldest first']);
+    expect(top('The Spice Table'), lessThan(top('Cafe Mocha')));
+    expect(top('Cafe Mocha'), lessThan(top('Biryani House')));
+
+    // The clock is 5 Nov, so 30 days reaches back to 6 Oct: the 1 Oct bill
+    // drops out while the other two stay.
+    await choose(['Last 30 days']);
+    expect(find.text('The Spice Table'), findsNothing);
+    expect(find.text('Cafe Mocha'), findsOneWidget);
+    expect(find.text('Biryani House'), findsOneWidget);
+    await screenshot(tester, 'history_filtered');
+
+    // Nothing in range is explained, with a way back.
+    await tester.enterText(find.byType(TextField), 'spice');
+    await tester.pump(const Duration(milliseconds: 300));
+    await settle(tester);
+    expect(find.text('No bills match'), findsOneWidget);
+    await tester.tap(find.text('Clear filters'));
+    await settle(tester);
+    expect(find.text('The Spice Table'), findsOneWidget);
+    expect(find.text('Biryani House'), findsOneWidget);
+  });
+
+  testWidgets('the filter sheet fits a small phone at 2x text', (tester) async {
+    final app = (await tester.runAsync(makeApp))!;
+    await seed(tester, app);
+    await pumpApp(
+      tester,
+      app,
+      location: '/history',
+      size: const Size(320, 568),
+      textScale: 2,
+    );
+    await tester.tap(find.byIcon(Icons.tune_rounded));
+    await settle(tester);
+    expect(find.text('Sort and filter'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the sheet can be reset to the default order', (tester) async {
+    final app = (await tester.runAsync(makeApp))!;
+    await seed(tester, app);
+    await pumpApp(tester, app, location: '/history');
+
+    await tester.tap(find.byIcon(Icons.tune_rounded));
+    await settle(tester);
+    expect(find.text('Reset'), findsNothing);
+    await tester.tap(find.text('Highest amount'));
+    await settle(tester);
+    expect(find.text('Reset'), findsOneWidget);
+    await tester.tap(find.text('Reset'));
+    await settle(tester);
+    expect(find.text('Reset'), findsNothing);
+  });
+
+  testWidgets('a bill with no photo gets a quiet placeholder, not a gap', (
+    tester,
+  ) async {
+    final app = (await tester.runAsync(makeApp))!;
+    await seed(tester, app);
+    await pumpApp(tester, app, location: '/history');
+
+    // One placeholder per saved bill, none showing an error.
+    expect(find.byIcon(Icons.receipt_long_outlined), findsNWidgets(3));
+    expect(find.byIcon(Icons.broken_image_outlined), findsNothing);
+  });
+
+  testWidgets('a bill with a receipt shows its photo as a thumbnail', (
+    tester,
+  ) async {
+    final root = Directory.systemTemp.createTempSync('divvy_rec_');
+    addTearDown(() => root.deleteSync(recursive: true));
+    final app = (await tester.runAsync(() => makeApp(root: root)))!;
+    await tester.runAsync(() async {
+      final path = await LocalReceiptStorage(root).save(
+        sourcePath: p.absolute('test/fixtures/receipts/spice_table_photo.jpg'),
+        billId: 'bill-1',
+      );
+      await SqliteBillRepository(
+        app.db.db,
+      ).save(goldenDraft().toRecord(id: 'bill-1', now: now, receiptPath: path));
+    });
+    await pumpApp(tester, app, location: '/history');
+    // Wait for the photo to be decoded and painted, not merely for the widget.
+    bool decoded() {
+      final raw = find.byType(RawImage).evaluate();
+      return raw.isNotEmpty &&
+          (raw.single.renderObject! as RenderImage).image != null;
+    }
+
+    await waitUntil(tester, decoded);
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(decoded(), isTrue, reason: 'the thumbnail should show the photo');
+    // Give the decoder time to close the file before teardown deletes the
+    // folder (Windows will not delete an open file).
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 300)),
+    );
+
+    expect(find.byType(Image), findsOneWidget);
+    expect(find.textContaining('Receipt saved'), findsOneWidget);
+    expect(find.byIcon(Icons.broken_image_outlined), findsNothing);
+    await screenshot(tester, 'history_thumbnail');
+  });
+
+  testWidgets('a receipt that has gone missing falls back quietly', (
+    tester,
+  ) async {
+    final app = (await tester.runAsync(makeApp))!;
+    await tester.runAsync(
+      () => SqliteBillRepository(app.db.db).save(
+        goldenDraft().toRecord(
+          id: 'bill-1',
+          now: now,
+          receiptPath: 'receipts/gone.jpg',
+        ),
+      ),
+    );
+    await pumpApp(tester, app, location: '/history');
+
+    // The row still opens and shows no error box at thumbnail size.
+    expect(find.byType(Image), findsNothing);
+    expect(find.byIcon(Icons.receipt_long_outlined), findsOneWidget);
+    expect(find.text("Couldn't show this photo"), findsNothing);
   });
 
   testWidgets('tapping a bill opens it', (tester) async {

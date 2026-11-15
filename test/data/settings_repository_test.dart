@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import '../support/test_database.dart';
 
 void main() {
+  autoReadTests();
   test('defaults to rupees and following the system theme', () async {
     final app = await openTestDatabase();
     final settings = await SqliteSettingsRepository(app.db).load();
@@ -40,4 +41,22 @@ void main() {
     );
     await app.close();
   });
+}
+
+void autoReadTests() {
+  test(
+    'reads receipts automatically unless turned off, and remembers',
+    () async {
+      final app = await openTestDatabase();
+      final repo = SqliteSettingsRepository(app.db);
+      expect((await repo.load()).autoReadReceipts, isTrue);
+
+      await repo.setAutoReadReceipts(false);
+      expect((await repo.load()).autoReadReceipts, isFalse);
+
+      await repo.setAutoReadReceipts(true);
+      expect((await repo.load()).autoReadReceipts, isTrue);
+      await app.close();
+    },
+  );
 }
